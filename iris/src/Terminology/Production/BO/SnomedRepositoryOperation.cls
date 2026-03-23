@@ -39,10 +39,7 @@ Method HandleSearch(pRequest As Terminology.Production.Msg.SnomedSearchRequest, 
         Set sql = "SELECT %ID, ConceptId, Term "_
                   "FROM Terminology_Snomed.PreferredTerm "                
         Set endSQL = "ORDER BY Term"
-        Set tSC = stmt.%Prepare(sql)
-        If $$$ISERR(tSC) {
-            Return tSC
-        }
+        
         if (pRequest.ReleaseId '= "") {
             Set whereList = whereList_$ListBuild("ReleaseId = ?")
             Set tArgs($i(tArgs)) = pRequest.ReleaseId
@@ -189,15 +186,22 @@ Method HandleGetChildren(pRequest As Terminology.Production.Msg.SnomedGetChildre
         Set sql = "SELECT c.%ID, c.DescendantId AS ConceptId, c.Depth, pt.Term "_
                   "FROM Terminology_Snomed.IsaClosure c "_
                   "LEFT JOIN Terminology_Snomed.PreferredTerm pt "_
-                  "ON pt.ConceptId = c.DescendantId "
+                  "ON pt.ConceptId = c.DescendantId AND c.ReleaseId = pt.ReleaseId "
 
         Set endSQL = "ORDER BY pt.Term"
 
+        If (pRequest.Lang '= "") {
+            Set joinList = joinList_$ListBuild("pt.Lang = ?")
+            Set tArgs($i(tArgs)) = pRequest.Lang
+        }
+
+        If (pRequest.Dialect '= "") {
+            Set joinList = joinList_$ListBuild("pt.Dialect = ?")
+            Set tArgs($i(tArgs)) = pRequest.Dialect
+        }
+
         If (pRequest.ReleaseId '= "") {
             Set whereList = whereList_$ListBuild("c.ReleaseId = ?")
-            Set tArgs($i(tArgs)) = pRequest.ReleaseId
-
-            Set joinList = joinList_$ListBuild("pt.ReleaseId = ?")
             Set tArgs($i(tArgs)) = pRequest.ReleaseId
         }
 
@@ -211,17 +215,7 @@ Method HandleGetChildren(pRequest As Terminology.Production.Msg.SnomedGetChildre
             Set tArgs($i(tArgs)) = pRequest.ConceptId
         }
 
-        Set whereList = whereList_$ListBuild("c.Depth = 1")
-
-        If (pRequest.Lang '= "") {
-            Set joinList = joinList_$ListBuild("pt.Lang = ?")
-            Set tArgs($i(tArgs)) = pRequest.Lang
-        }
-
-        If (pRequest.Dialect '= "") {
-            Set joinList = joinList_$ListBuild("pt.Dialect = ?")
-            Set tArgs($i(tArgs)) = pRequest.Dialect
-        }
+        Set whereList = whereList_$ListBuild("c.Depth = 1")        
 
         If (joinList '= "") {
             Set sql = sql_" AND "_$ListToString(joinList," AND ")
@@ -232,7 +226,6 @@ Method HandleGetChildren(pRequest As Terminology.Production.Msg.SnomedGetChildre
         } Else {
             Set query = sql_" "_endSQL
         }
-
         Set statement = ##class(%SQL.Statement).%New()
         $$$ThrowOnError(statement.%Prepare(query))
         Set rset = statement.%Execute(tArgs...)
@@ -245,7 +238,6 @@ Method HandleGetChildren(pRequest As Terminology.Production.Msg.SnomedGetChildre
             Set item.preferredTerm = rset.%Get("Term")
             Do items.%Push(item)
         }
-
         Set payload = {}
         Set payload.items = items
         Set payload.count = items.%Size()
@@ -270,15 +262,22 @@ Method HandleGetDescendants(pRequest As Terminology.Production.Msg.SnomedGetDesc
         Set sql = "SELECT c.%ID, c.DescendantId AS ConceptId, c.Depth, pt.Term "_
                   "FROM Terminology_Snomed.IsaClosure c "_
                   "LEFT JOIN Terminology_Snomed.PreferredTerm pt "_
-                  "ON pt.ConceptId = c.DescendantId "
+                  "ON pt.ConceptId = c.DescendantId AND c.ReleaseId = pt.ReleaseId "
 
-        Set endSQL = "ORDER BY c.Depth, pt.Term"
+        Set endSQL = "ORDER BY c.Depth, pt.Term"        
+
+        If (pRequest.Lang '= "") {
+            Set joinList = joinList_$ListBuild("pt.Lang = ?")
+            Set tArgs($i(tArgs)) = pRequest.Lang
+        }
+
+        If (pRequest.Dialect '= "") {
+            Set joinList = joinList_$ListBuild("pt.Dialect = ?")
+            Set tArgs($i(tArgs)) = pRequest.Dialect
+        }
 
         If (pRequest.ReleaseId '= "") {
             Set whereList = whereList_$ListBuild("c.ReleaseId = ?")
-            Set tArgs($i(tArgs)) = pRequest.ReleaseId
-
-            Set joinList = joinList_$ListBuild("pt.ReleaseId = ?")
             Set tArgs($i(tArgs)) = pRequest.ReleaseId
         }
 
@@ -290,16 +289,6 @@ Method HandleGetDescendants(pRequest As Terminology.Production.Msg.SnomedGetDesc
         If (pRequest.ConceptId '= "") {
             Set whereList = whereList_$ListBuild("c.AncestorId = ?")
             Set tArgs($i(tArgs)) = pRequest.ConceptId
-        }
-
-        If (pRequest.Lang '= "") {
-            Set joinList = joinList_$ListBuild("pt.Lang = ?")
-            Set tArgs($i(tArgs)) = pRequest.Lang
-        }
-
-        If (pRequest.Dialect '= "") {
-            Set joinList = joinList_$ListBuild("pt.Dialect = ?")
-            Set tArgs($i(tArgs)) = pRequest.Dialect
         }
 
         If (joinList '= "") {
