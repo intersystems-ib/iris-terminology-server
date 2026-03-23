@@ -1,4 +1,4 @@
-Class Terminology.Snomed.BuilderIsaClosure Extends %RegisteredObject
+Class Terminology.Snomed.Utils.BuilderIsaClosure Extends %RegisteredObject
 {
 
 ClassMethod Build(pReleaseId As %String, pView As %String = "inferred", pIsaTypeId As %String = "116680003") As %Status
@@ -21,7 +21,7 @@ STATED_CHARACTERISTIC_TYPE_ID = "900000000000010007"
 def log_info(msg):
     try:
         iris.cls("Ens.Util.Log").LogInfo(
-            "Terminology.Snomed.BuilderIsaClosure",
+            "Terminology.Snomed.Utils.BuilderIsaClosure",
             "BuildPy",
             str(msg)
         )

@@ -1,4 +1,4 @@
-Class Terminology.Snomed.BuilderPreferredTerm Extends %RegisteredObject
+Class Terminology.Snomed.Utils.BuilderPreferredTerm Extends %RegisteredObject
 {
 
 ClassMethod Build(pReleaseId As %String, pLang As %String = "es", pDialect As %String = "es-ES", pLanguageRefsetId As %String = "") As %Status
@@ -205,7 +205,7 @@ ClassMethod InsertPreferredTermsFromStage(pReleaseId As %String, pLang As %Strin
 ClassMethod LogInfo(pText As %String) As %Status
 {
     Do ##class(Ens.Util.Log).LogInfo(
-        "Terminology.Snomed.BuilderPreferredTerm",
+        "Terminology.Snomed.Utils.BuilderPreferredTerm",
         "Build",
         pText
     )
