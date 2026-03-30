@@ -139,10 +139,8 @@ Method HandleGetConcept(pRequest As Terminology.Production.Msg.SnomedGetConceptR
 
         If (pRequest.ReleaseId '= "") {
             Set whereList = whereList_$ListBuild("c.ReleaseId = ?")
-            Set tArgs($i(tArgs)) = pRequest.ReleaseId
 
-            Set joinList = joinList_$ListBuild("pt.ReleaseId = ?")
-            Set tArgs($i(tArgs)) = pRequest.ReleaseId
+            Set joinList = joinList_$ListBuild("pt.ReleaseId = c.ReleaseId")
         }
 
         If (pRequest.Lang '= "") {
@@ -153,6 +151,10 @@ Method HandleGetConcept(pRequest As Terminology.Production.Msg.SnomedGetConceptR
         If (pRequest.Dialect '= "") {
             Set joinList = joinList_$ListBuild("pt.Dialect = ?")
             Set tArgs($i(tArgs)) = pRequest.Dialect
+        }
+
+        If (pRequest.ReleaseId '= "") {
+            Set tArgs($i(tArgs)) = pRequest.ReleaseId
         }
 
         If (pRequest.ConceptId '= "") {
@@ -171,6 +173,7 @@ Method HandleGetConcept(pRequest As Terminology.Production.Msg.SnomedGetConceptR
         }
 
         Set statement = ##class(%SQL.Statement).%New()
+
         $$$ThrowOnError(statement.%Prepare(query))
         Set rset = statement.%Execute(tArgs...)
 
