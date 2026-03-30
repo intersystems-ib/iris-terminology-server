@@ -111,6 +111,11 @@ Create a common terminology service contract:
 - ExpandValueSet
 - TranslateConcept
 
+Current implementation rule:
+- keep the initial common contract deliberately narrow
+- route current SNOMED lookup, validate-code, subsumes and search through `Terminology.Core.TermService`
+- keep SNOMED-native navigation and refset operations in `Terminology.Snomed.SnomedAdapter` until there is a real neutral use case
+
 ### Phase C
 Implement FHIR over the common service contract, not directly over tables.
 

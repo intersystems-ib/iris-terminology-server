@@ -111,6 +111,14 @@ FHIR implementation should depend on service methods like:
 - `ExpandValueSet(valueSetId, filter, offset, count)`
 - `TranslateCode(sourceSystem, sourceCode, targetSystem)`
 
+Near-term implementation note:
+- the first concrete common contract should stay narrow and only cover currently justified SNOMED-backed operations
+- `LookupCode`
+- `ValidateCode`
+- `Subsumes`
+- `SearchConcepts`
+- hierarchy navigation, descriptions and refset operations may remain adapter-specific until the FHIR layer needs a neutral shape
+
 ## Incremental rollout rule
 
 Each FHIR operation should be delivered with:

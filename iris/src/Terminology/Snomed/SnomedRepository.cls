@@ -1,6 +1,9 @@
+/// SNOMED SQL/data access layer.
+/// All database queries for the current SNOMED API should stay in this class.
 Class Terminology.Snomed.SnomedRepository Extends %RegisteredObject
 {
 
+/// Searches preferred terms using the derived search table.
 Method SearchConcepts(pReleaseId As %String = "", pLang As %String = "", pDialect As %String = "", pQuery As %String = "", pLimit As %Integer = 20, pOffset As %Integer = 0, Output pResult As Terminology.Snomed.DTO.SearchResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.SearchResult).%New()
@@ -67,6 +70,7 @@ Method SearchConcepts(pReleaseId As %String = "", pLang As %String = "", pDialec
     }
 }
 
+/// Returns the concept row plus its preferred term for the requested language/dialect.
 Method GetConceptByCode(pConceptId As %String = "", pReleaseId As %String = "", pLang As %String = "", pDialect As %String = "", Output pResult As Terminology.Snomed.DTO.ConceptResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.ConceptResult).%New()
@@ -130,6 +134,7 @@ Method GetConceptByCode(pConceptId As %String = "", pReleaseId As %String = "", 
     }
 }
 
+/// Returns direct children from the closure table.
 Method GetChildren(pConceptId As %String = "", pReleaseId As %String = "", pView As %String = "", pLang As %String = "", pDialect As %String = "", Output pResult As Terminology.Snomed.DTO.ConceptListResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.ConceptListResult).%New()
@@ -143,6 +148,7 @@ Method GetChildren(pConceptId As %String = "", pReleaseId As %String = "", pView
     }
 }
 
+/// Returns descendants from the closure table with pagination applied in memory.
 Method GetDescendants(pConceptId As %String = "", pReleaseId As %String = "", pView As %String = "", pLang As %String = "", pDialect As %String = "", pLimit As %Integer = 100, pOffset As %Integer = 0, Output pResult As Terminology.Snomed.DTO.ConceptListResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.ConceptListResult).%New()
@@ -156,6 +162,7 @@ Method GetDescendants(pConceptId As %String = "", pReleaseId As %String = "", pV
     }
 }
 
+/// Returns ancestors from the closure table, optionally including the concept itself.
 Method GetAncestors(pConceptId As %String = "", pReleaseId As %String = "", pView As %String = "", pLang As %String = "", pDialect As %String = "", pIncludeSelf As %Integer = 0, pMaxDepth As %Integer = 0, pLimit As %Integer = 100, pOffset As %Integer = 0, Output pResult As Terminology.Snomed.DTO.ConceptListResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.ConceptListResult).%New()
@@ -223,6 +230,7 @@ Method GetAncestors(pConceptId As %String = "", pReleaseId As %String = "", pVie
     }
 }
 
+/// Returns description rows for a concept with simple filtering by language, active flag and type.
 Method GetDescriptions(pConceptId As %String = "", pReleaseId As %String = "", pLang As %String = "", pActiveOnly As %Integer = 0, pTypeId As %String = "", pLimit As %Integer = 200, pOffset As %Integer = 0, Output pResult As Terminology.Snomed.DTO.DescriptionListResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.DescriptionListResult).%New()
@@ -297,6 +305,7 @@ Method GetDescriptions(pConceptId As %String = "", pReleaseId As %String = "", p
     }
 }
 
+/// Determines the directional subsumption relationship using the precomputed closure table.
 Method GetSubsumptionRelation(pReleaseId As %String = "", pView As %String = "", pCodeA As %String = "", pCodeB As %String = "", Output pRelationship As %String) As %Status
 {
     Set pRelationship = "not-subsumed"
@@ -323,6 +332,7 @@ Method GetSubsumptionRelation(pReleaseId As %String = "", pView As %String = "",
     }
 }
 
+/// Lists active refset identifiers available for a release.
 Method GetRefsets(pReleaseId As %String = "", pLimit As %Integer = 100, pOffset As %Integer = 0, Output pResult As Terminology.Snomed.DTO.RefsetListResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.RefsetListResult).%New()
@@ -371,6 +381,7 @@ Method GetRefsets(pReleaseId As %String = "", pLimit As %Integer = 100, pOffset 
     }
 }
 
+/// Returns active members of a refset and resolves their preferred term when available.
 Method GetRefsetMembers(pRefsetId As %String = "", pReleaseId As %String = "", pLang As %String = "", pDialect As %String = "", pLimit As %Integer = 100, pOffset As %Integer = 0, Output pResult As Terminology.Snomed.DTO.RefsetMemberListResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.RefsetMemberListResult).%New()
@@ -449,6 +460,7 @@ Method GetRefsetMembers(pRefsetId As %String = "", pReleaseId As %String = "", p
     }
 }
 
+/// Checks whether a concept exists in the requested release and whether it is active.
 Method ValidateCode(pReleaseId As %String = "", pCode As %String = "", Output pResult As Terminology.Snomed.DTO.ValidateCodeResult) As %Status
 {
     Set pResult = ##class(Terminology.Snomed.DTO.ValidateCodeResult).%New()
@@ -487,6 +499,7 @@ Method ValidateCode(pReleaseId As %String = "", pCode As %String = "", Output pR
     }
 }
 
+/// Shared hierarchy query helper for children and descendants.
 Method GetHierarchyList(pConceptId As %String, pReleaseId As %String, pView As %String, pLang As %String, pDialect As %String, pMode As %String, pOffset As %Integer, pLimit As %Integer, Output pResult As Terminology.Snomed.DTO.ConceptListResult) As %Status [ Private ]
 {
     Try {
