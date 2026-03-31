@@ -2,6 +2,7 @@
 @username = superuser
 @password = SYS
 @valueSetId = 900000000000497000
+@conceptCode = 22298006
 
 ### CapabilityStatement
 GET {{baseUrl}}/metadata
@@ -30,6 +31,11 @@ Authorization: Basic {{username}}:{{password}}
 
 ### CodeSystem search by name
 GET {{baseUrl}}/CodeSystem?name=SNOMEDCT
+Accept: application/fhir+json
+Authorization: Basic {{username}}:{{password}}
+
+### CodeSystem $lookup by code
+GET {{baseUrl}}/CodeSystem/$lookup?system=http://snomed.info/sct&code={{conceptCode}}&displayLanguage=es
 Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
 

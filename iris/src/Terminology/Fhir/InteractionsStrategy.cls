@@ -19,6 +19,20 @@ Parameter InteractionsClass = "Terminology.Fhir.Interactions";
 Method GetMetadataResource() As %DynamicObject
 {
     set capabilityStatement = ##super()
+    set capabilityStatement.name = "TerminologyFhirServerCapabilityStatement"
+    set capabilityStatement.title = "Terminology FHIR Server CapabilityStatement"
+    set capabilityStatement.publisher = "InterSystems Developer Community"
+    do capabilityStatement.%Set("experimental", 1, "boolean")
+    set capabilityStatement.description = "FHIR terminology server for reusable terminology services on InterSystems IRIS for Health."
+    set capabilityStatement.purpose = "Expose a narrow FHIR terminology MVP over the current implementation while keeping the architecture ready for additional terminologies."
+    if '$IsObject(capabilityStatement.implementation) {
+        set capabilityStatement.implementation = {}
+    }
+    set capabilityStatement.implementation.description = "Terminology FHIR Server"
+    if '$IsObject(capabilityStatement.software) {
+        set capabilityStatement.software = {}
+    }
+    set capabilityStatement.software.name = "Terminology FHIR Server"
 
     if '$IsObject(capabilityStatement.rest) {
         set capabilityStatement.rest = []
@@ -45,6 +59,8 @@ Method GetMetadataResource() As %DynamicObject
     do codeSystem.searchParam.%Push({"name":"_id","type":"token"})
     do codeSystem.searchParam.%Push({"name":"name","type":"string"})
     do codeSystem.searchParam.%Push({"name":"version","type":"token"})
+    set codeSystem.operation = []
+    do codeSystem.operation.%Push({"name":"lookup","definition":"http://hl7.org/fhir/OperationDefinition/CodeSystem-lookup"})
     do resources.%Push(codeSystem)
 
     set valueSet = {}
@@ -60,6 +76,7 @@ Method GetMetadataResource() As %DynamicObject
     do resources.%Push(valueSet)
 
     set rest.resource = resources
+    do rest.%Remove("operation")
     return capabilityStatement
 }
 

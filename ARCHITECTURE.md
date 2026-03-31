@@ -119,6 +119,11 @@ Current implementation rule:
 ### Phase C
 Implement FHIR over the common service contract, not directly over tables.
 
+For custom IRIS FHIR operations:
+- keep one class per operation where practical
+- keep operation parsing, validation and response mapping inside that operation class
+- use a thin aggregator class for `OperationHandlerClass` so future operations can be added as a simple extension chain
+
 ### Phase D
 Add second terminology support only after the common service contract is stable.
 

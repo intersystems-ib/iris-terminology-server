@@ -29,6 +29,8 @@ Method GetCodeSystemInfo(pSystemUri As %String = "", Output pResult As Terminolo
             Set pResult.Name = "SNOMEDCT"
             Set pResult.Title = "SNOMED CT"
             Set pResult.Description = "SNOMED CT code system"
+            Set pResult.DefaultLang = "es"
+            Set pResult.DefaultDialect = "es-ES"
         } Else {
             Return $$$OK
         }
