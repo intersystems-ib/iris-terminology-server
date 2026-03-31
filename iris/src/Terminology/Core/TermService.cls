@@ -58,6 +58,58 @@ Method GetValueSetInfo(pSystem As %String = "snomed", pId As %String = "", Outpu
     Return ..ResolveAdapter(pSystem).GetValueSetInfo(pId, "", .pResult)
 }
 
+/// Returns minimal code system metadata rows for FHIR search-type support.
+Method SearchCodeSystems(pUrl As %String = "", pId As %String = "", pName As %String = "", pVersion As %String = "", Output pResult As Terminology.Core.DTO.CodeSystemListResult) As %Status
+{
+    Set pResult = ##class(Terminology.Core.DTO.CodeSystemListResult).%New()
+
+    Set tSC = ##class(Terminology.Core.MetadataRepository).%New().SearchCodeSystems(pUrl, pName, .searchResult)
+    $$$ThrowOnError(tSC)
+
+    If '$IsObject(searchResult) {
+        Return $$$OK
+    }
+
+    For index=1:1:searchResult.Items.Count() {
+        Set item = searchResult.Items.GetAt(index)
+        If '$IsObject(item) {
+            Continue
+        }
+
+        Set item.Id = ..BuildCodeSystemId(item.Url)
+        If ..ResolveCodeSystemUri(item.Id) = "" {
+            Continue
+        }
+
+        If (pId '= "") && ($ZCONVERT(item.Id, "L") '= $ZCONVERT(pId, "L")) {
+            Continue
+        }
+
+        If (pVersion '= "") && (item.Version '= pVersion) {
+            Continue
+        }
+
+        If (item.Name = "") {
+            Set item.Name = item.Id
+        }
+
+        If item.Title = "" {
+            Set item.Title = item.Name
+        }
+
+        Do pResult.Items.Insert(item)
+    }
+
+    Set pResult.Count = $Select($IsObject(pResult.Items):pResult.Items.Count(), 1:0)
+    Return $$$OK
+}
+
+/// Returns minimal value set metadata rows for FHIR search-type support.
+Method SearchValueSets(pSystem As %String = "snomed", pUrl As %String = "", pId As %String = "", pName As %String = "", pVersion As %String = "", Output pResult As Terminology.Core.DTO.ValueSetListResult) As %Status
+{
+    Return ..ResolveAdapter(pSystem).SearchValueSets(pUrl, pId, pName, pVersion, .pResult)
+}
+
 /// Explicit adapter resolution keeps the current implementation simple while making
 /// the routing point obvious for future terminologies.
 Method ResolveAdapter(pSystem As %String = "snomed") As Terminology.Snomed.SnomedAdapter [ Private ]

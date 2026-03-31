@@ -79,6 +79,58 @@ Method GetRefsetMembers(pRefsetId As %String = "", pReleaseId As %String = "", p
     Return ..GetRepository().GetRefsetMembers(pRefsetId, pReleaseId, pLang, pDialect, pLimit, pOffset, .pResult)
 }
 
+/// Returns minimal neutral value set metadata rows over SNOMED reference sets.
+Method SearchValueSets(pUrl As %String = "", pId As %String = "", pName As %String = "", pVersion As %String = "", Output pResult As Terminology.Core.DTO.ValueSetListResult) As %Status
+{
+    Set pResult = ##class(Terminology.Core.DTO.ValueSetListResult).%New()
+
+    Try {
+        Set releaseId = pVersion
+        Set tSC = ..GetRefsets(releaseId, 10000, 0, .refsetResult)
+        $$$ThrowOnError(tSC)
+
+        If '$IsObject(refsetResult) {
+            Return $$$OK
+        }
+
+        For index=1:1:refsetResult.Items.Count() {
+            Set refset = refsetResult.Items.GetAt(index)
+            If '$IsObject(refset) {
+                Continue
+            }
+
+            If (pId '= "") && (refset.RefsetId '= pId) {
+                Continue
+            }
+
+            Set tSC = ..GetValueSetInfo(refset.RefsetId, releaseId, .valueSetInfo)
+            $$$ThrowOnError(tSC)
+            If '$IsObject(valueSetInfo) || (valueSetInfo.Id = "") {
+                Continue
+            }
+
+            If (pUrl '= "") && (valueSetInfo.Url '= pUrl) {
+                Continue
+            }
+
+            If (pName '= "") && ($ZCONVERT(valueSetInfo.Name, "L") '= $ZCONVERT(pName, "L")) {
+                Continue
+            }
+
+            If (pVersion '= "") && (valueSetInfo.Version '= pVersion) {
+                Continue
+            }
+
+            Do pResult.Items.Insert(valueSetInfo)
+        }
+
+        Set pResult.Count = $Select($IsObject(pResult.Items):pResult.Items.Count(), 1:0)
+        Return $$$OK
+    } Catch ex {
+        Return $$$ERROR($$$GeneralError, ex.DisplayString())
+    }
+}
+
 /// Returns a minimal neutral ValueSet view over a SNOMED reference set.
 Method GetValueSetInfo(pValueSetId As %String = "", pReleaseId As %String = "", Output pResult As Terminology.Core.DTO.ValueSetInfo) As %Status
 {

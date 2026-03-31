@@ -40,6 +40,11 @@ Method GetMetadataResource() As %DynamicObject
     set codeSystem.interaction = []
     do codeSystem.interaction.%Push({"code":"read"})
     do codeSystem.interaction.%Push({"code":"search-type"})
+    set codeSystem.searchParam = []
+    do codeSystem.searchParam.%Push({"name":"url","type":"uri"})
+    do codeSystem.searchParam.%Push({"name":"_id","type":"token"})
+    do codeSystem.searchParam.%Push({"name":"name","type":"string"})
+    do codeSystem.searchParam.%Push({"name":"version","type":"token"})
     do resources.%Push(codeSystem)
 
     set valueSet = {}
@@ -47,6 +52,11 @@ Method GetMetadataResource() As %DynamicObject
     set valueSet.interaction = []
     do valueSet.interaction.%Push({"code":"read"})
     do valueSet.interaction.%Push({"code":"search-type"})
+    set valueSet.searchParam = []
+    do valueSet.searchParam.%Push({"name":"url","type":"uri"})
+    do valueSet.searchParam.%Push({"name":"_id","type":"token"})
+    do valueSet.searchParam.%Push({"name":"name","type":"string"})
+    do valueSet.searchParam.%Push({"name":"version","type":"token"})
     do resources.%Push(valueSet)
 
     set rest.resource = resources

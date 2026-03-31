@@ -28,6 +28,11 @@ Minimal support for:
 - `ValueSet`
 - `ConceptMap` later in MVP or post-MVP depending on maturity
 
+Initial interaction support for the metadata resources:
+- `read` for `CodeSystem`
+- `read` for `ValueSet`
+- `search-type` for `CodeSystem` and `ValueSet` metadata exposure with a narrow parameter set
+
 ### Operations
 Priority order:
 

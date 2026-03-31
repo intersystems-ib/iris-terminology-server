@@ -29,7 +29,7 @@ Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
 
 ### CodeSystem search by name
-GET {{baseUrl}}/CodeSystem?name=SNOMED
+GET {{baseUrl}}/CodeSystem?name=SNOMEDCT
 Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
 
@@ -44,11 +44,11 @@ Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
 
 ### ValueSet search by url
-GET {{baseUrl}}/ValueSet?url=http://snomed.info/sct?fhir_vs
+GET {{baseUrl}}/ValueSet?url=http://snomed.info/sct?fhir_vs=refset/900000000000489007
 Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
 
 ### ValueSet search by name
-GET {{baseUrl}}/ValueSet?name=SNOMED
+GET {{baseUrl}}/ValueSet?name=SnomedRefset446608001
 Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
