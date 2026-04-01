@@ -9,6 +9,7 @@ RUN chown -R ${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_MGRUSER} /opt/irisapp
 USER ${ISC_PACKAGE_MGRUSER}
 
 COPY /iris/src src
+COPY /iris/tests tests
 COPY /iris/iris.script /tmp/iris.script
 
 COPY --chown=$ISC_PACKAGE_MGRUSER:$ISC_PACKAGE_IRISGROUP /iris/requirements.txt /

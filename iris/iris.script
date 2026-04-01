@@ -8,6 +8,7 @@
 
  // load source code
  set sc = $SYSTEM.OBJ.LoadDir("/opt/irisapp/src/Terminology", "ck", , 1)
+ set ^UnitTestRoot = "/opt/irisapp/tests"
  
  // install fhir server
  set appKey = "/terminology/fhir/r4"

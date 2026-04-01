@@ -122,6 +122,44 @@ Use:
 
 This is useful when you want to inspect the stored SNOMED and derived data directly.
 
+## Run Unit Tests
+
+The repository includes an initial `%UnitTest` suite for the native SNOMED API and the shared SNOMED service path.
+
+Current suite:
+
+- `Terminology.Tests.Snomed.*`
+
+Notes:
+
+- these tests seed their own synthetic SNOMED fixture data under a dedicated `ReleaseId`
+- they can be run with or without a full SNOMED catalog already loaded
+- they do require the local IRIS stack to be running and the `/terminology/snomed` web application to be available
+
+Open an IRIS terminal in the container:
+
+```bash
+docker exec -it iris iris session IRIS
+```
+
+If you change test files while the container is already running, copy the updated test tree into the container before rerunning `%UnitTest`:
+
+```bash
+docker cp iris/tests/ iris:/opt/irisapp
+```
+
+Switch to the terminology namespace and run the suite:
+
+```objectscript
+zn "TERMINOLOGY"
+set ^UnitTestRoot = "/opt/irisapp/tests"
+do ##class(%UnitTest.Manager).RunTest("snomed", "/nodelete")
+```
+
+This runs all tests found under `iris/tests/snomed`.
+
+The `/nodelete` flag is useful during development because it keeps the loaded test classes available after the run.
+
 ## Suggested First Reading Order
 
 After you verify the stack, read:

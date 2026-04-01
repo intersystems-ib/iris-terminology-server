@@ -66,6 +66,8 @@ docker compose up -d
 
 7. Verify the server using the HTTP examples under `docs/http/`.
 
+8. Run the SNOMED unit tests as described in [docs/getting-started.md](/Users/afuentes/Documents/ISC/workspace/terminology/docs/getting-started.md).
+
 For the full setup and verification flow, see [docs/getting-started.md](/Users/afuentes/Documents/ISC/workspace/terminology/docs/getting-started.md).
 
 ## Documentation Map
