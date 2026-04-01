@@ -18,7 +18,8 @@ ClassMethod AddSupportedOperations(pMap As %DynamicObject)
 /// dispatch mechanism.
 ClassMethod ProcessOperation(pService As HS.FHIRServer.API.Service, pRequest As HS.FHIRServer.API.Data.Request, pResponse As HS.FHIRServer.API.Data.Response)
 {
-    // fix: remove hyphens from operation name
+    // Normalize hyphenated FHIR operation names to the IRIS dispatch method naming pattern.
+    // (e.g. validate-code will call FHIR<Scope>OpValidatecode)
     Set pRequest.OperationName = $tr(pRequest.OperationName, "-", "")
 
     return ##super(pService, pRequest, pResponse)
