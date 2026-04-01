@@ -29,6 +29,8 @@ Index IXByReferenced On (ReleaseId, RefsetId, ReferencedId, Active);
 
 Index IXRefsetActive On (ReleaseId, RefsetId, Active);
 
+Index IXPreferredBuild On (ReleaseId, RefsetId, Active, ReferencedId);
+
 Storage Default
 {
 <Data name="RefsetMemberDefaultData">
