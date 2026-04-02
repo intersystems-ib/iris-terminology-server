@@ -75,15 +75,23 @@ Notes:
 
 The repository includes:
 
-- [iris/shared/tune.sql](/Users/afuentes/Documents/ISC/workspace/terminology/iris/shared/tune.sql)
+- [iris/shared/sql/sql-tuning-indexes.sql](/Users/afuentes/Documents/ISC/workspace/terminology/iris/shared/sql/sql-tuning-indexes.sql)
+- [iris/shared/sql/reset-terminology-data.sql](/Users/afuentes/Documents/ISC/workspace/terminology/iris/shared/sql/reset-terminology-data.sql)
 
-To load it in IRIS:
+To load the tuning script in IRIS:
 
 ```sql
-LOAD SQL FROM FILE '/shared/tune.sql' DIALECT 'IRIS' DELIMITER ';'
+LOAD SQL FROM FILE '/iris-shared/sql/sql-tuning-indexes.sql' DIALECT 'IRIS' DELIMITER ';'
 ```
 
-Apply this only when you want the tuning statements in that file enabled for your environment.
+To reset loaded terminology data in IRIS:
+
+```sql
+LOAD SQL FROM FILE '/iris-shared/sql/reset-terminology-data.sql' DIALECT 'IRIS' DELIMITER ';'
+```
+
+Apply the tuning script only when you want those statements enabled for your environment.
+Use the reset script only in local development environments.
 
 ## Verify The Server
 
