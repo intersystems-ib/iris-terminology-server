@@ -69,7 +69,7 @@ Concept / Description / Relationship / RefsetMember
 
 ### Native SNOMED API Path
 
-- `Terminology.Production.API.SnomedApi`
+- `Terminology.Production.API`
 - `Terminology.Production.BS.SnomedGatewayService`
 - `Terminology.Production.BO.SnomedRepositoryOperation`
 - `Terminology.Snomed.SnomedRepository`

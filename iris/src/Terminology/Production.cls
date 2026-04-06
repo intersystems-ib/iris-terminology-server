@@ -3,11 +3,11 @@ Class Terminology.Production Extends Ens.Production
 
 XData ProductionDefinition
 {
-<Production Name="Terminology.Production" LogGeneralTraceEvents="true">
+<Production Name="Terminology.Production" TestingEnabled="true" LogGeneralTraceEvents="true">
   <Description></Description>
   <ActorPoolSize>2</ActorPoolSize>
   <Item Name="SnomedFileService" Category="" ClassName="Terminology.Production.BS.SnomedRf2FileService" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
-    <Setting Target="Adapter" Name="FilePath">/iris-shared/in/</Setting>
+    <Setting Target="Adapter" Name="FilePath">/iris-shared/in/snomed/extension/</Setting>
     <Setting Target="Host" Name="TargetConfigName">SnomedFileProcessing</Setting>
     <Setting Target="Host" Name="EffectiveDate">2026-03-19</Setting>
     <Setting Target="Host" Name="ReleaseId">SNOMED CT version 20260101</Setting>
@@ -31,11 +31,21 @@ XData ProductionDefinition
     <Setting Target="Host" Name="ClearBeforeLoad">1</Setting>
   </Item>
   <Item Name="SnomedFileServiceBase" Category="" ClassName="Terminology.Production.BS.SnomedRf2FileService" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
-    <Setting Target="Adapter" Name="FilePath">/iris-shared/baseIn/</Setting>
+    <Setting Target="Adapter" Name="FilePath">/iris-shared/in/snomed/base/</Setting>
     <Setting Target="Host" Name="TargetConfigName">SnomedFileProcessingBase</Setting>
     <Setting Target="Host" Name="EffectiveDate">2026-03-19</Setting>
     <Setting Target="Host" Name="ReleaseId">SNOMED CT version 20260101</Setting>
     <Setting Target="Adapter" Name="FileSpec">*.zip</Setting>
+  </Item>
+  <Item Name="LoincFileService" Category="" ClassName="Terminology.Production.BS.LoincFileService" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Adapter" Name="FilePath">/iris-shared/in/loinc/</Setting>
+    <Setting Target="Adapter" Name="FileSpec">*.zip</Setting>
+    <Setting Target="Host" Name="TargetConfigName">LoincFileProcessing</Setting>
+    <Setting Target="Host" Name="ReleaseId">2.82</Setting>
+  </Item>
+  <Item Name="LoincFileProcessing" Category="" ClassName="Terminology.Production.BP.LoincLoad" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Host" Name="ClearBeforeLoad">1</Setting>
+    <Setting Target="Host" Name="TempDirectory">/iris-shared/tmp</Setting>
   </Item>
 </Production>
 }

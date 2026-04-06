@@ -84,7 +84,7 @@ There are two main API surfaces.
 
 The native path is centered on:
 
-- `Terminology.Production.API.SnomedApi`
+- `Terminology.Production.API`
 - `Terminology.Production.BS.SnomedGatewayService`
 - `Terminology.Production.BO.SnomedRepositoryOperation`
 - `Terminology.Snomed.SnomedRepository`
@@ -150,7 +150,7 @@ A practical reading order for a developer is:
 1. [README.md](/Users/afuentes/Documents/ISC/workspace/terminology/README.md)
 2. [docs/getting-started.md](/Users/afuentes/Documents/ISC/workspace/terminology/docs/getting-started.md)
 3. [ARCHITECTURE.md](/Users/afuentes/Documents/ISC/workspace/terminology/ARCHITECTURE.md)
-4. `iris/src/Terminology/Production/API/SnomedApi.cls`
+4. `iris/src/Terminology/Production/API.cls`
 5. `iris/src/Terminology/Snomed/SnomedRepository.cls`
 6. `iris/src/Terminology/Core/TermService.cls`
 7. `iris/src/Terminology/Snomed/SnomedAdapter.cls`

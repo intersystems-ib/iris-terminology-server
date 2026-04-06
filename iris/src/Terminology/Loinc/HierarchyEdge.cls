@@ -1,17 +1,31 @@
 Class Terminology.Loinc.HierarchyEdge Extends %Persistent
 {
 
-Property ReleaseId As %String(MAXLEN = 64) [ Required ];
+Property ReleaseId As %String(MAXLEN = 100) [ Required ];
 
-Property ParentCode As %String(MAXLEN = 20) [ Required ];
+/// Tipo de jerarquía: COMPONENTBYSYSTEM o GROUP
+Property HierarchyType As %String(MAXLEN = 50) [ Required ];
 
-Property ChildCode As %String(MAXLEN = 20) [ Required ];
+/// Nodo padre
+Property ParentCode As %String(MAXLEN = 100) [ Required ];
 
-Property Axis As %String(MAXLEN = 50);
+/// Nodo hijo
+Property ChildCode As %String(MAXLEN = 100) [ Required ];
 
-Index PK On (ReleaseId, ParentCode, ChildCode) [ Unique ];
+/// Tipo de nodo padre: LOINC / PART / GROUP
+Property ParentNodeType As %String(MAXLEN = 30);
 
-Index IXChild On (ReleaseId, ChildCode, ParentCode);
+/// Tipo de nodo hijo: LOINC / PART / GROUP
+Property ChildNodeType As %String(MAXLEN = 30);
+
+/// PathToRoot o ruta textual si viene en el archivo
+Property PathToRoot As %String(MAXLEN = 4000);
+
+Index PK On (ReleaseId, HierarchyType, ParentCode, ChildCode) [ IdKey, Unique ];
+
+Index IXParent On (ReleaseId, HierarchyType, ParentCode, ChildCode);
+
+Index IXChild On (ReleaseId, HierarchyType, ChildCode, ParentCode);
 
 Storage Default
 {
@@ -20,16 +34,13 @@ Storage Default
 <Value>%%CLASSNAME</Value>
 </Value>
 <Value name="2">
-<Value>ReleaseId</Value>
+<Value>ParentNodeType</Value>
 </Value>
 <Value name="3">
-<Value>ParentCode</Value>
+<Value>ChildNodeType</Value>
 </Value>
 <Value name="4">
-<Value>ChildCode</Value>
-</Value>
-<Value name="5">
-<Value>Axis</Value>
+<Value>PathToRoot</Value>
 </Value>
 </Data>
 <DataLocation>^TerminologyB303.HierarchyEdgeD</DataLocation>

@@ -1,17 +1,21 @@
 Class Terminology.Loinc.Closure Extends %Persistent
 {
 
-Property ReleaseId As %String(MAXLEN = 64) [ Required ];
+Property ReleaseId As %String(MAXLEN = 100) [ Required ];
 
-Property AncestorCode As %String(MAXLEN = 20) [ Required ];
+Property HierarchyType As %String(MAXLEN = 50) [ Required ];
 
-Property DescendantCode As %String(MAXLEN = 20) [ Required ];
+Property AncestorCode As %String(MAXLEN = 100) [ Required ];
+
+Property DescendantCode As %String(MAXLEN = 100) [ Required ];
 
 Property Depth As %Integer [ Required ];
 
-Index PK On (ReleaseId, AncestorCode, DescendantCode) [ Unique ];
+Index PK On (ReleaseId, HierarchyType, AncestorCode, DescendantCode) [ IdKey, Unique ];
 
-Index IXDesc On (ReleaseId, DescendantCode, AncestorCode);
+Index IXAncestor On (ReleaseId, HierarchyType, AncestorCode, Depth, DescendantCode);
+
+Index IXDescendant On (ReleaseId, HierarchyType, DescendantCode, Depth, AncestorCode);
 
 Storage Default
 {
@@ -20,15 +24,6 @@ Storage Default
 <Value>%%CLASSNAME</Value>
 </Value>
 <Value name="2">
-<Value>ReleaseId</Value>
-</Value>
-<Value name="3">
-<Value>AncestorCode</Value>
-</Value>
-<Value name="4">
-<Value>DescendantCode</Value>
-</Value>
-<Value name="5">
 <Value>Depth</Value>
 </Value>
 </Data>

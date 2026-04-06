@@ -3,7 +3,7 @@ Class Terminology.Production.BP.SnomedRf2Load Extends Ens.BusinessProcess
 
 Parameter INVOCATION = "Queue";
 
-Property TempDirectory As %String(MAXLEN = 500) [ InitialExpression = "/tmp/terminology" ];
+Property TempDirectory As %String(MAXLEN = 500) [ InitialExpression = "/iris-shared/tmp/snomed" ];
 
 Property SnomedFileSuffix As %String(MAXLEN = 500) [ InitialExpression = "SpanishExtension" ];
 
