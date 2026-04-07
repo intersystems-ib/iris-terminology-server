@@ -157,10 +157,13 @@ Method ResolveAdapter(pSystem As %String = "snomed") As Terminology.Snomed.Snome
 Method BuildCodeSystemId(pSystemUri As %String = "") As %String [ Private ]
 {
     If pSystemUri = "http://snomed.info/sct" {
-        Quit "snomed"
+        Return "snomed"
+    }
+    If pSystemUri = "http://loinc.org" {
+        Return "loinc"
     }
 
-    Quit $ZCONVERT(pSystemUri, "L")
+    Return $ZCONVERT(pSystemUri, "L")
 }
 
 /// Resolves the current MVP FHIR logical id to a code system canonical url.
@@ -168,10 +171,13 @@ Method ResolveCodeSystemUri(pId As %String = "") As %String [ Private ]
 {
     Set normalized = ..NormalizeCodeSystemUrl(pId)
     If (normalized = "") || ($ZCONVERT(normalized, "L") = "snomed") || ($ZCONVERT(normalized, "L") = "http://snomed.info/sct") {
-        Quit "http://snomed.info/sct"
+        Return "http://snomed.info/sct"
+    }
+    If ($ZCONVERT(normalized, "L") = "loinc") || ($ZCONVERT(normalized, "L") = "http://loinc.org") {
+        Return "http://loinc.org"
     }
 
-    Quit ""
+    Return ""
 }
 
 Method NormalizeCodeSystemUrl(pValue As %String = "") As %String [ Private ]
@@ -196,6 +202,14 @@ Method NormalizeCodeSystemUrl(pValue As %String = "") As %String [ Private ]
 
     If $ZCONVERT(normalized, "L") = "snomed" {
         Return "snomed"
+    }
+
+    If $ZCONVERT(normalized, "L") = "http://loinc.org" {
+        Return "http://loinc.org"
+    }
+
+    If $ZCONVERT(normalized, "L") = "loinc" {
+        Return "loinc"
     }
 
     Return normalized
