@@ -23,8 +23,8 @@ The system expects RF2 ZIP files to be dropped into shared container folders.
 
 Typical pattern:
 
-- international release in `iris/shared/baseIn/`
-- extension release in `iris/shared/in/`
+- international release in `iris/shared/in/snomed/base/`
+- extension release in 'iris/shared/in/snomed/extension`
 
 The production layer detects those files and starts the ingestion flow.
 

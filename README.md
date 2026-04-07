@@ -56,9 +56,9 @@ docker compose build
 docker compose up -d
 ```
 
-3. Copy the SNOMED CT International release ZIP to `iris/shared/baseIn/`.
+3. Copy the SNOMED CT International release ZIP to `iris/shared/in/snomed/base/`.
 
-4. Copy a national extension ZIP, if used, to `iris/shared/in/`.
+4. Copy a national extension ZIP, if used, to 'iris/shared/in/snomed/extension`.
 
 5. Let the production process ingest the files and build the runtime structures.
 

@@ -146,8 +146,8 @@ The containerized environment watches input folders under `iris/shared/`.
 
 Typical flow:
 
-- the international SNOMED package is placed in `iris/shared/baseIn/`
-- an extension package is placed in `iris/shared/in/`
+- the international SNOMED package is placed in `iris/shared/in/snomed/base/`
+- an extension package is placed in 'iris/shared/in/snomed/extension`
 - the production detects those files
 - the load process imports the RF2 records into SNOMED source tables
 

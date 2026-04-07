@@ -45,7 +45,7 @@ After startup, the container environment should initialize the terminology datab
 Place the international ZIP file in:
 
 ```text
-iris/shared/baseIn/
+iris/shared/in/snomed/base/
 ```
 
 The production process watches that location and will ingest the file.
