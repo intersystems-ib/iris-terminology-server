@@ -1,15 +1,17 @@
 Class Terminology.Production.Msg.LoincGetGroupsResponse Extends Ens.Response
 {
 
-Property Payload As %DynamicObject;
+Property Payload As Terminology.Loinc.DTO.GroupResult;
 
 Storage Default
 {
-<Data name="Payload">
-<Attribute>Payload</Attribute>
-<Structure>node</Structure>
-<Subscript>"Terminology.Production.Msg.LoincGetGroupsResponse.Payload"</Subscript>
+<Data name="LoincGetGroupsResponseDefaultData">
+<Subscript>"LoincGetGroupsResponse"</Subscript>
+<Value name="1">
+<Value>Payload</Value>
+</Value>
 </Data>
+<DefaultData>LoincGetGroupsResponseDefaultData</DefaultData>
 <Type>%Storage.Persistent</Type>
 }
 
