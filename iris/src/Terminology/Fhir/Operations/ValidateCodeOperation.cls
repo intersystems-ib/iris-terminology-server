@@ -22,6 +22,7 @@ ClassMethod FHIRInstanceOpValidatecode(pService As HS.FHIRServer.API.Service, pR
 }
 
 /// Keeps the FHIR layer thin by validating request semantics and delegating code validation.
+/// Display checking reuses the lookup helpers so the same operation works for SNOMED and LOINC.
 ClassMethod ProcessCodeSystemValidateCode(pService As HS.FHIRServer.API.Service, pRequest As HS.FHIRServer.API.Data.Request, pResponse As HS.FHIRServer.API.Data.Response, pResourceType As %String, pResourceId As %String = "")
 {
     If pResourceType'="CodeSystem" {
@@ -93,7 +94,9 @@ ClassMethod ParseValidateCodeInputs(pRequest As HS.FHIRServer.API.Data.Request, 
 }
 
 /// Builds a minimal Parameters resource for successful validate-code responses.
-ClassMethod BuildValidateCodeResponse(pInputs As %DynamicObject, pValidation As Terminology.Snomed.DTO.ValidateCodeResult, pConcept = "") As %DynamicObject [ Private ]
+/// When a display is supplied, compare it against the terminology-specific lookup display
+/// instead of assuming a SNOMED preferred term.
+ClassMethod BuildValidateCodeResponse(pInputs As %DynamicObject, pValidation, pConcept = "") As %DynamicObject [ Private ]
 {
     Set response = ##class(%DynamicObject).%New()
     Set parameters = ##class(%DynamicArray).%New()
@@ -109,9 +112,10 @@ ClassMethod BuildValidateCodeResponse(pInputs As %DynamicObject, pValidation As 
         Set message = "Code was not found in the code system."
     }
 
-    If (pInputs.%Get("display") '= "") && $IsObject(pConcept) && (pConcept.PreferredTerm '= pInputs.%Get("display")) {
+    Set actualDisplay = ##class(Terminology.Fhir.Operations.LookupOperation).GetLookupResultDisplayFromConcept(pConcept)
+    If (pInputs.%Get("display") '= "") && (actualDisplay '= "") && (actualDisplay '= pInputs.%Get("display")) {
         Set result = 0
-        Set message = "The display does not match the preferred term for the code."
+        Set message = "The display does not match the display for the code."
     }
 
     Do response.%Set("resourceType", "Parameters")
@@ -126,6 +130,7 @@ ClassMethod BuildValidateCodeResponse(pInputs As %DynamicObject, pValidation As 
     Quit response
 }
 
+/// Builds one boolean-valued Parameters.entry object for FHIR validate-code responses.
 ClassMethod BuildBooleanParameter(pName As %String, pValue As %Boolean) As %DynamicObject [ Private ]
 {
     Set parameter = ##class(%DynamicObject).%New()

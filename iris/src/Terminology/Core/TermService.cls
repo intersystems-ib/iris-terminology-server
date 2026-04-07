@@ -3,14 +3,15 @@
 Class Terminology.Core.TermService Extends %RegisteredObject
 {
 
-/// Common lookup operation used by higher layers that should not know SNOMED tables.
-Method LookupCode(pSystem As %String = "snomed", pCode As %String = "", pVersion As %String = "", pLang As %String = "", pDialect As %String = "", Output pResult As Terminology.Snomed.DTO.ConceptResult) As %Status
+/// Common lookup operation used by higher layers that should not know terminology-specific tables.
+Method LookupCode(pSystem As %String = "snomed", pCode As %String = "", pVersion As %String = "", pLang As %String = "", pDialect As %String = "", Output pResult) As %Status
 {
     Return ..ResolveAdapter(pSystem).LookupCode(pCode, pVersion, pLang, pDialect, .pResult)
 }
 
 /// Common validate-code operation.
-Method ValidateCode(pSystem As %String = "snomed", pVersion As %String = "", pCode As %String = "", Output pResult As Terminology.Snomed.DTO.ValidateCodeResult) As %Status
+/// Output is intentionally untyped because each adapter returns its own DTO shape.
+Method ValidateCode(pSystem As %String = "snomed", pVersion As %String = "", pCode As %String = "", Output pResult) As %Status
 {
     Return ..ResolveAdapter(pSystem).ValidateCode(pVersion, pCode, .pResult)
 }
@@ -140,7 +141,8 @@ Method ExpandValueSet(pSystem As %String = "snomed", pValueSetId As %String = ""
 
 /// Explicit adapter resolution keeps the current implementation simple while making
 /// the routing point obvious for future terminologies.
-Method ResolveAdapter(pSystem As %String = "snomed") As Terminology.Snomed.SnomedAdapter [ Private ]
+/// The return type is generic because the adapters do not share one concrete class.
+Method ResolveAdapter(pSystem As %String = "snomed") As %RegisteredObject [ Private ]
 {
     If (pSystem = "") || ($ZCONVERT(pSystem, "L") = "snomed") || (pSystem = "http://snomed.info/sct") {
         Quit ##class(Terminology.Snomed.SnomedAdapter).%New()

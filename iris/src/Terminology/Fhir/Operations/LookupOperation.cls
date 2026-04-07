@@ -22,6 +22,7 @@ ClassMethod FHIRInstanceOpLookup(pService As HS.FHIRServer.API.Service, pRequest
 }
 
 /// Keeps the FHIR layer thin by validating request semantics and delegating concept lookup.
+/// The returned DTO is terminology-specific, so the response mapping resolves code and display fields
 ClassMethod ProcessCodeSystemLookup(pService As HS.FHIRServer.API.Service, pRequest As HS.FHIRServer.API.Data.Request, pResponse As HS.FHIRServer.API.Data.Response, pResourceType As %String, pResourceId As %String = "")
 {
     If pResourceType'="CodeSystem" {
@@ -50,7 +51,8 @@ ClassMethod ProcessCodeSystemLookup(pService As HS.FHIRServer.API.Service, pRequ
     )
     $$$ThrowOnError(tSC)
 
-    If ('$IsObject(concept)) || (concept.ConceptId = "") {
+    Set conceptCode = ..GetLookupResultCode(context, concept)
+    If conceptCode = "" {
         $$$ThrowFHIR($$$HSFHIRErrResourceNotFound, "CodeSystem", context.system_"|"_inputs.code, $$$OutcomeInvalid(404))
     }
 
@@ -140,14 +142,18 @@ ClassMethod ResolveLookupContext(pResourceId As %String, pRequestedSystem As %St
 ClassMethod NormalizeSystem(pSystem As %String) As %String [ Private ]
 {
     If (pSystem = "") || ($ZCONVERT(pSystem, "L") = "snomed") || (pSystem = "http://snomed.info/sct") {
-        Quit $Select(pSystem = "":"", 1:"http://snomed.info/sct")
+        Return $Select(pSystem = "":"", 1:"http://snomed.info/sct")
+    }
+    If ($ZCONVERT(pSystem, "L") = "loinc") || (pSystem = "http://loinc.org") {
+        Return "http://loinc.org"
     }
 
     Quit pSystem
 }
 
 /// Builds a minimal Parameters resource for successful lookup responses.
-ClassMethod BuildLookupResponse(pContext As %DynamicObject, pConcept As Terminology.Snomed.DTO.ConceptResult) As %DynamicObject [ Private ]
+/// Code and display are resolved through helpers because SNOMED and LOINC use different DTO fields.
+ClassMethod BuildLookupResponse(pContext As %DynamicObject, pConcept) As %DynamicObject [ Private ]
 {
     Set response = ##class(%DynamicObject).%New()
     Set parameters = ##class(%DynamicArray).%New()
@@ -162,13 +168,99 @@ ClassMethod BuildLookupResponse(pContext As %DynamicObject, pConcept As Terminol
         Do parameters.%Push(..BuildStringParameter("version", pContext.%Get("version")))
     }
 
-    If pConcept.PreferredTerm '= "" {
-        Do parameters.%Push(..BuildStringParameter("display", pConcept.PreferredTerm))
+    Set code = ..GetLookupResultCode(pContext, pConcept)
+    If code '= "" {
+        Do parameters.%Push(..BuildStringParameter("code", code))
+    }
+
+    If pContext.%Get("system") '= "" {
+        Do parameters.%Push(..BuildStringParameter("system", pContext.%Get("system")))
+    }
+
+    Set display = ..GetLookupResultDisplay(pContext, pConcept)
+    If display '= "" {
+        Do parameters.%Push(..BuildStringParameter("display", display))
     }
 
     Quit response
 }
 
+/// Extracts the code value from the terminology-specific lookup DTO.
+ClassMethod GetLookupResultCode(pContext As %DynamicObject, pConcept) As %String
+{
+    If '$IsObject(pConcept) {
+        Return ""
+    }
+
+    // LOINC lookup DTOs expose the code as `LoincNum`, while SNOMED uses `ConceptId`.
+    If pContext.%Get("system") = "http://loinc.org" {
+        Return ..GetPropertySafely(pConcept, "LoincNum")
+    }
+
+    Return ..GetPropertySafely(pConcept, "ConceptId")
+}
+
+/// Extracts the best display value from the terminology-specific lookup DTO.
+ClassMethod GetLookupResultDisplay(pContext As %DynamicObject, pConcept) As %String
+{
+    If '$IsObject(pConcept) {
+        Return ""
+    }
+
+    // LOINC does not provide one preferred-term field, so prefer the most user-facing labels first.
+    If pContext.%Get("system") = "http://loinc.org" {
+        Set display = ..GetPropertySafely(pConcept, "LongCommonName")
+        If display '= "" {
+            Return display
+        }
+
+        Set display = ..GetPropertySafely(pConcept, "DisplayName")
+        If display '= "" {
+            Return display
+        }
+
+        Set display = ..GetPropertySafely(pConcept, "ShortName")
+        If display '= "" {
+            Return display
+        }
+
+        Return ..GetPropertySafely(pConcept, "ConsumerName")
+    }
+
+    Return ..GetPropertySafely(pConcept, "PreferredTerm")
+}
+
+/// Convenience helper for callers that only have the DTO instance and not the lookup context.
+ClassMethod GetLookupResultDisplayFromConcept(pConcept) As %String
+{
+    Set context = ##class(%DynamicObject).%New()
+
+    If '$IsObject(pConcept) {
+        Return ""
+    }
+
+    // Validate-code may only have the lookup DTO instance, so infer the terminology from the class name.
+    Set className = $Get(pConcept.%ClassName(1))
+    If className["Terminology.Loinc." {
+        Do context.%Set("system", "http://loinc.org")
+    } Else {
+        Do context.%Set("system", "http://snomed.info/sct")
+    }
+
+    Return ..GetLookupResultDisplay(context, pConcept)
+}
+
+/// Reads an optional property without forcing callers to care which DTO class was returned.
+ClassMethod GetPropertySafely(pObject, pPropertyName As %String) As %String [ Private ]
+{
+    Try {
+        Return $PROPERTY(pObject, pPropertyName)
+    } Catch ex {
+        Return ""
+    }
+}
+
+/// Builds one string-valued Parameters.entry object for FHIR operation responses.
 ClassMethod BuildStringParameter(pName As %String, pValue As %String) As %DynamicObject
 {
     Set parameter = ##class(%DynamicObject).%New()

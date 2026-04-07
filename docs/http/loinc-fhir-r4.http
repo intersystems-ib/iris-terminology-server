@@ -36,16 +36,14 @@ Accept: application/fhir+json
 Authorization: Basic {{username}}:{{password}}
 
 ### CodeSystem $lookup by code
-# Not supported yet for LOINC in the current FHIR mapping layer.
-# GET {{baseUrl}}/CodeSystem/$lookup?system={{systemUrl}}&code={{conceptCode}}&displayLanguage=es
-# Accept: application/fhir+json
-# Authorization: Basic {{username}}:{{password}}
+GET {{baseUrl}}/CodeSystem/$lookup?system={{systemUrl}}&code={{conceptCode}}&displayLanguage=es
+Accept: application/fhir+json
+Authorization: Basic {{username}}:{{password}}
 
 ### CodeSystem instance $lookup by code
-# Not supported yet for LOINC in the current FHIR mapping layer.
-# GET {{baseUrl}}/CodeSystem/{{codeSystemId}}/$lookup?code={{conceptCode}}&displayLanguage=es
-# Accept: application/fhir+json
-# Authorization: Basic {{username}}:{{password}}
+GET {{baseUrl}}/CodeSystem/{{codeSystemId}}/$lookup?code={{conceptCode}}&displayLanguage=es
+Accept: application/fhir+json
+Authorization: Basic {{username}}:{{password}}
 
 ### CodeSystem $validate-code by code
 GET {{baseUrl}}/CodeSystem/$validate-code?system={{systemUrl}}&code={{conceptCode}}
