@@ -608,7 +608,7 @@ ClassMethod SendGatewayRequest(pRequest As Ens.Request, Output pResponse As Ens.
 ClassMethod WriteDynamicResponse(pPayload As %JSON.Adaptor) As %Status
 {
     Set %response.ContentType = "application/json"
-    Write pPayload.%JSONExport()
+    do pPayload.%JSONExport()
     Return $$$OK
 }
 
