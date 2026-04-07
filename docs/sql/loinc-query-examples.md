@@ -282,7 +282,9 @@ WHERE ReleaseId = '2.82'
 
 Uses the `Display` table and the iFind index `IXDisplayNormFind`.
 
-This matches the repository search approach.
+### 12.1 Exact-Term iFind Search
+
+This matches the current repository search approach.
 
 ```sql
 SELECT TOP 50
@@ -296,6 +298,30 @@ WHERE d.ReleaseId = '2.82'
   AND %ID %FIND search_index(IXDisplayNormFind, 'hemo')
 ORDER BY d.RankOrder, d.Display;
 ```
+
+This is token-oriented search:
+
+- `hemo` can match `Hemo sintetasa`
+- `ferro` does not match `Ferroquelatasa`
+
+### 12.2 Wildcard iFind Search
+
+If you want to experiment with wildcard search over the same `%iFind.Index.Basic` index, use `*` in the search term:
+
+```sql
+SELECT TOP 50
+    d.LoincNum,
+    d.Display,
+    d.DisplayType,
+    d.RankOrder
+FROM Terminology_Loinc.Display d
+WHERE d.ReleaseId = '2.82'
+  AND d.Lang = 'es'
+  AND %ID %FIND search_index(IXDisplayNormFind, '*ferro*')
+ORDER BY d.RankOrder, d.Display;
+```
+
+This broader form can match fragments inside a token, such as `ferro` within `Ferroquelatasa`.
 
 If you need a simple fallback without iFind:
 
