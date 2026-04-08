@@ -2,39 +2,55 @@
 
 ## Objective
 
-Define the first FHIR terminology scope for this project.
+Define the current FHIR terminology scope for this project.
 
-This file is intentionally narrow.
-The first goal is not "full FHIR terminology server".
-The first goal is "credible, working MVP over the current SNOMED-oriented base".
+This file is intentionally focused.
+The goal is not full enterprise FHIR terminology parity.
+The goal is a credible, working FHIR terminology surface on top of the repository's multi-terminology architecture.
 
-## MVP philosophy
+## Current Position
 
-Implement FHIR operations in the order that maximizes reuse of current working logic.
+The repository now exposes a shared FHIR R4 terminology surface over:
 
-The current project already appears to have SNOMED-oriented capabilities equivalent to:
-- lookup-like behavior
-- validate-code-like behavior
-- subsumption/navigation behavior
-- search support
+- SNOMED CT
+- LOINC
 
-The FHIR layer should reuse that logic through a common service contract.
+The important architectural rule remains the same:
 
-## MVP in scope
+- FHIR classes stay focused on FHIR request and response behavior
+- `Terminology.Core.TermService` provides the integrated logical routing layer
+- terminology-specific behavior remains in adapters and repositories
+
+## Scope Philosophy
+
+Implement FHIR operations in the order that maximizes reuse of current working terminology logic.
+
+The FHIR layer should reuse:
+
+- shared service contracts where they exist
+- terminology-specific adapters where behavior genuinely differs
+
+The project should not force all terminologies into identical behavior just because the FHIR operation name is the same.
+
+## In Scope
 
 ### Resources
+
 Minimal support for:
+
 - `CodeSystem`
 - `ValueSet`
-- `ConceptMap` later in MVP or post-MVP depending on maturity
+- `ConceptMap` later, depending on mapping maturity
 
-Initial interaction support for the metadata resources:
+Current metadata interaction support:
+
 - `read` for `CodeSystem`
 - `read` for `ValueSet`
 - `search-type` for `CodeSystem` and `ValueSet` metadata exposure with a narrow parameter set
 
 ### Operations
-Priority order:
+
+Current priority operations:
 
 1. `CodeSystem/$lookup`
 2. `CodeSystem/$validate-code`
@@ -42,73 +58,78 @@ Priority order:
 4. `ValueSet/$expand`
 5. `ConceptMap/$translate`
 
-## Detailed MVP scope
+## Current Implementation Direction
 
-### 1. CodeSystem/$lookup
+### CodeSystem/$lookup
+
 Purpose:
+
 - return core concept information for a given code
 
-Initial expectations:
+Current expectations:
+
+- system/version support
 - code existence
 - display
-- active status
-- system/version support
-- designations where available
-- selected properties if already easy to expose
+- selected fields that are already easy to expose from the terminology-specific DTOs
 
-May initially be SNOMED-only behind a generic FHIR contract.
+### CodeSystem/$validate-code
 
-### 2. CodeSystem/$validate-code
 Purpose:
-- validate whether a code is valid in a code system/version
-- optionally validate display if supported
 
-Initial expectations:
-- valid / invalid
+- validate whether a code is valid in a code system/version
+
+Current expectations:
+
+- valid / invalid result
 - inactive where relevant
-- diagnostics message
 - version-sensitive behavior when possible
 
-### 3. CodeSystem/$subsumes
+### CodeSystem/$subsumes
+
 Purpose:
+
 - determine hierarchical relationship between two concepts
 
-Initial expectations:
+Current expectations:
+
 - equivalent
 - subsumes
 - subsumed-by
 - not-subsumed
 
-Likely based on existing closure/ancestor-descendant logic in the SNOMED implementation.
+The implementation can remain terminology-sensitive behind the shared FHIR contract because hierarchy semantics are not identical across systems.
 
-### 4. ValueSet/$expand
+### ValueSet/$expand
+
 Purpose:
+
 - return members of a ValueSet
 
-Initial MVP can be narrow:
-- expansion of simple predefined value sets
-- expansion from stored local definitions
-- limited filters
+Current expectations:
 
-Avoid building a full generic composition engine too early.
+- SNOMED-backed expansion through refset-like behavior
+- LOINC-backed expansion through group membership behavior
+- limited but practical metadata and expansion support
 
-### 5. ConceptMap/$translate
+### ConceptMap/$translate
+
 Purpose:
+
 - translate a code using stored mappings
 
-Only implement after mapping model/storage is sufficiently clear.
+Only implement after the mapping model and storage are sufficiently clear.
 
-## Explicitly out of scope for first iteration
+## Explicitly Out Of Scope For The Current Stage
 
 - full authoring support
-- full SNOMED ECL engine
-- all FHIR search interactions
-- complete metadata parity with enterprise terminology servers
-- broad multi-terminology support before common contracts are stable
+- full enterprise FHIR terminology parity
+- broad search interaction coverage beyond the implemented narrow metadata path
+- pretending every terminology has identical FHIR semantics underneath
 
-## Service contract required
+## Service Contract Required
 
-FHIR implementation should depend on service methods like:
+FHIR implementation should continue to depend on service methods such as:
 
 - `LookupCode(system, version, code, language, propertySet)`
 - `ValidateCode(system, version, code, display, valueSet)`
@@ -116,23 +137,25 @@ FHIR implementation should depend on service methods like:
 - `ExpandValueSet(valueSetId, filter, offset, count)`
 - `TranslateCode(sourceSystem, sourceCode, targetSystem)`
 
-Near-term implementation note:
-- the first concrete common contract should stay narrow and only cover currently justified SNOMED-backed operations
-- `LookupCode`
-- `ValidateCode`
-- `Subsumes`
-- `SearchConcepts`
-- hierarchy navigation, descriptions and refset operations may remain adapter-specific until the FHIR layer needs a neutral shape
+Near-term implementation rule:
 
-## Incremental rollout rule
+- keep the common contract narrow
+- expose only operations justified by real behavior across supported terminologies
+- let terminology-specific complexity stay in adapters where needed
+
+## Incremental Rollout Rule
 
 Each FHIR operation should be delivered with:
-- documented mapping to existing logic
+
+- documented mapping to the underlying terminology logic
 - at least a minimal test set
-- examples of request/response
+- example request/response usage
 - explicit statement of current limitations
 
-## Initial target
-Initial practical target:
-- SNOMED-backed FHIR terminology operations
-- architecture ready for future LOINC/other terminology adapters
+## Current Target
+
+Current practical target:
+
+- one working FHIR terminology surface on IRIS for Health
+- SNOMED CT and LOINC both supported where the current implementation justifies it
+- architecture ready for future terminology adapters without flattening terminology differences away

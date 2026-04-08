@@ -15,7 +15,7 @@ Avoid:
 
 - mixing API, business logic and SQL in the same class
 - "generic" abstractions with no immediate use
-- SNOMED assumptions inside common classes
+- SNOMED or LOINC assumptions inside common classes
 - redundant comments that only restate the code
 
 ## Commenting Conventions
@@ -84,6 +84,10 @@ Responsibilities:
 - common operation contracts
 - validation of input semantics
 
+Must not:
+
+- silently hard-code SNOMED or LOINC semantics into common logic when those semantics belong in an adapter
+
 ### Repository Layer
 
 Responsibilities:
@@ -92,6 +96,11 @@ Responsibilities:
 - result mapping
 - persistence access
 - IRIS-specific optimization
+
+Notes:
+
+- repository methods may remain terminology-specific when the underlying model or query semantics differ
+- use IRIS-specific features such as iFind deliberately and document those assumptions when they affect behavior
 
 ### Load / Build Layer
 
@@ -124,7 +133,7 @@ Examples of acceptable repository methods:
 ## FHIR Conventions
 
 - FHIR classes must use common terminology service contracts
-- FHIR endpoint code must not directly read SNOMED tables
+- FHIR endpoint code must not directly read terminology tables
 - FHIR naming should align with operation names:
   - `$lookup`
   - `$validate-code`
@@ -156,6 +165,11 @@ Diagram placement rule:
 - put small overview diagrams in the README
 - put implementation and data-flow diagrams in the architecture docs
 
+Repo positioning rule:
+
+- describe the repository as a multi-terminology terminology server example on InterSystems IRIS for Health
+- do not describe it as SNOMED-only unless a document is intentionally SNOMED-specific
+
 ## Repository Organization Conventions
 
 - store manual `.http` request files used for developer API checks under `docs/http/`
@@ -179,6 +193,8 @@ Priority test areas:
 - subsumes
 - search
 - preferred term selection
+
+Apply these areas per supported terminology where the capability exists.
 
 ## Commit Conventions
 

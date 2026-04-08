@@ -1,46 +1,95 @@
-# Terminology Server on InterSystems IRIS
+# Terminology Server on InterSystems IRIS for Health
 
-This repository is a open source implementation of a terminology server built on InterSystems IRIS for Health.
+This repository is a practical example of a terminology server built on InterSystems IRIS for Health.
 
-The project is structured to evolve into a multi-terminology foundation and a practical example for developers.
+It is intended both as:
+
+- a working developer reference for terminology services on IRIS
+- a partner-facing example that supports architecture conversations, capability discussions and opportunity discovery
+
+The repository is intentionally multi-terminology.
+Today it supports SNOMED CT and LOINC.
+The target direction is to keep adding terminologies through the same architectural model instead of building isolated one-off implementations.
+
+## Why This Repo Exists
+
+This project demonstrates how IRIS for Health can be used as one integrated terminology platform for:
+
+- terminology ingestion and release management
+- persistent storage and SQL access
+- fast search using IRIS features such as iFind
+- native terminology-specific APIs
+- FHIR terminology APIs
+- interoperability and production-based processing in the same runtime
+
+The goal is not only to expose endpoints.
+The goal is to show how to structure a terminology server on IRIS so that each terminology can keep its real complexity while still contributing to one integrated view.
 
 ## What This Repo Demonstrates
 
-- loading SNOMED CT RF2 releases into IRIS
-- combining base and extension content into one runtime dataset
-- building derived structures for fast search and hierarchy navigation
-- exposing native SNOMED-oriented REST endpoints
-- exposing an initial FHIR terminology surface over the same core behavior
-- organizing terminology logic so future code systems can be added without rewriting everything
+- SNOMED CT ingestion from RF2 releases
+- LOINC ingestion from release packages
+- terminology-specific source and runtime-optimized storage
+- native REST APIs under `/terminology/snomed` and `/terminology/loinc`
+- a shared FHIR R4 terminology surface under `/terminology/fhir/r4`
+- a common terminology service layer with adapters and repositories underneath
+- search and query optimization patterns on IRIS, including iFind-backed search where appropriate
 
 ## Current Scope
 
 Today the repository provides:
 
-- a working SNOMED CT ingestion pipeline
-- persistent source tables for concepts, descriptions, relationships and refset members
-- derived tables for preferred terms and hierarchical closure
-- a native REST API under `/terminology/snomed`
-- a FHIR R4 terminology surface under `/terminology/fhir/r4`
-- a first common service layer intended to support additional terminologies later
+- SNOMED CT native and FHIR terminology support
+- LOINC native and FHIR terminology support
+- terminology-specific ingestion and repository layers
+- a common `Terminology.Core.TermService` used to present a more integrated view
+- a production-based ingestion model on IRIS for Health
 
-This is not yet a full enterprise terminology platform. It is a practical, working base that shows how to structure one on IRIS.
+This is not yet a full enterprise terminology platform.
+It is a practical reference implementation that shows how to build one on IRIS for Health.
 
-## High-Level Flow
+## High-Level Architecture
 
 ```text
-RF2 ZIP files
+Terminology releases / packages
     |
     v
-Load / Build Pipeline
+IRIS interoperability / production-based intake
     |
     v
-SNOMED source tables + derived tables
+Terminology-specific load + build flows
     |
-    +--> Native REST API
+    +--> SNOMED source + derived tables
     |
-    +--> FHIR Terminology API
+    +--> LOINC source + derived tables
+    |
+    v
+Terminology.Core.TermService
+    |
+    +--> SNOMED adapter -> SNOMED repository
+    |
+    +--> LOINC adapter  -> LOINC repository
+    |
+    v
+Native APIs + FHIR R4 terminology APIs
 ```
+
+Use this diagram as the onboarding view.
+More detailed flow and layering diagrams belong in [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Why The Architecture Looks Like This
+
+The repository does not force every terminology into one universal physical model.
+
+Instead it separates concerns like this:
+
+- `TermService` defines the shared logical contract
+- adapters hold terminology-specific behavior
+- repositories isolate SQL and IRIS-specific query optimization
+- native and FHIR layers stay focused on protocol concerns
+
+This matters because SNOMED CT and LOINC do not have the same structure, hierarchy semantics or ingestion shape.
+The architecture allows each terminology to keep those differences while still exposing one server experience on top of IRIS.
 
 ## Quick Start
 
@@ -56,49 +105,63 @@ docker compose build
 docker compose up -d
 ```
 
-3. Copy the SNOMED CT International release ZIP to `iris/shared/in/snomed/base/`.
+3. Load one or both terminologies:
 
-4. Copy a national extension ZIP, if used, to 'iris/shared/in/snomed/extension`.
+- SNOMED CT packages under `iris/shared/in/snomed/base/` and optionally `iris/shared/in/snomed/extension/`
+- LOINC packages under `iris/shared/in/loinc/`
 
-5. Let the production process ingest the files and build the runtime structures.
+4. Let the production ingest and build the runtime structures.
 
-6. Optionally apply SQL tuning from `iris/shared/tune.sql`.
+5. Verify the server using the HTTP examples under `docs/http/`.
 
-7. Verify the server using the HTTP examples under `docs/http/`.
-
-8. Run the SNOMED unit tests as described in [docs/getting-started.md](docs/getting-started.md).
+6. Run the unit tests described in [docs/getting-started.md](docs/getting-started.md).
 
 For the full setup and verification flow, see [docs/getting-started.md](docs/getting-started.md).
 
 ## Documentation Map
 
-- [ARCHITECTURE.md](ARCHITECTURE.md): current implementation shape, runtime flow, target direction
+- [ARCHITECTURE.md](ARCHITECTURE.md): architecture, layer rationale and target direction
 - [docs/getting-started.md](docs/getting-started.md): build, start, load and verify the project
-- [docs/how-it-works.md](docs/how-it-works.md): narrative walkthrough for developers new to the repo
+- [docs/how-it-works.md](docs/how-it-works.md): narrative walkthrough for developers and partners new to the repo
 - [FHIR_SCOPE.md](FHIR_SCOPE.md): current FHIR terminology scope and rollout approach
 - [CONVENTIONS.md](CONVENTIONS.md): coding, layering and documentation rules
-- [docs/http/snomed-native.http](docs/http/snomed-native.http): native API request examples
-- [docs/http/snomed-fhir-r4.http](docs/http/snomed-fhir-r4.http): FHIR API request examples
-- [docs/sql/snomed-query-examples.md](docs/sql/snomed-query-examples.md): direct SQL examples over the SNOMED model
+- [docs/http/snomed-native.http](docs/http/snomed-native.http): SNOMED native API examples
+- [docs/http/loinc-native.http](docs/http/loinc-native.http): LOINC native API examples
+- [docs/http/snomed-fhir-r4.http](docs/http/snomed-fhir-r4.http): SNOMED FHIR examples
+- [docs/http/loinc-fhir-r4.http](docs/http/loinc-fhir-r4.http): LOINC FHIR examples
+- [docs/sql/snomed-query-examples.md](docs/sql/snomed-query-examples.md): direct SQL examples for SNOMED
+- [docs/sql/loinc-query-examples.md](docs/sql/loinc-query-examples.md): direct SQL examples for LOINC
 
-## Typical Developer Path
+## Suggested Reading Paths
 
-If you are new to the project, the shortest useful path is:
+### Fastest Path To Seeing It Work
 
-1. Read this file to understand the project boundary.
-2. Read [docs/getting-started.md](docs/getting-started.md) and run the stack.
-3. Use the `.http` files in `docs/http/` to verify the native and FHIR endpoints.
-4. Read [docs/how-it-works.md](docs/how-it-works.md) to understand the end-to-end lifecycle.
-5. Read [ARCHITECTURE.md](ARCHITECTURE.md) before making structural changes.
-6. Read [CONVENTIONS.md](CONVENTIONS.md) before contributing code.
+1. Read this file.
+2. Follow [docs/getting-started.md](docs/getting-started.md).
+3. Run one native example and one FHIR example for both SNOMED and LOINC.
+
+### Architecture Path
+
+1. Read this file.
+2. Read [ARCHITECTURE.md](ARCHITECTURE.md).
+3. Read [docs/how-it-works.md](docs/how-it-works.md).
+4. Then inspect `Terminology.Core.TermService`, one adapter and one repository per terminology.
+
+### Partner Conversation Path
+
+1. Read this file for the platform framing.
+2. Read [ARCHITECTURE.md](ARCHITECTURE.md) for the design rationale.
+3. Use the `.http` files in `docs/http/` to anchor the discussion in working behavior.
 
 ## Reference Implementation Goal
 
-The aim of this repository is not only to solve one internal SNOMED use case. It is to show developers a practical implementation pattern for:
+The aim of this repository is to help developers and partners answer questions like:
 
-- ingesting terminology content on IRIS
-- separating load, repository, service and API responsibilities
-- keeping terminology-specific logic isolated while introducing a shared service contract
-- exposing both native and FHIR-facing interfaces from the same underlying model
+- what does a terminology server on IRIS for Health look like in practice?
+- how do you support more than one terminology without flattening them into a fake universal schema?
+- how do native APIs and FHIR APIs share the same underlying behavior?
+- where can IRIS features such as interoperability, integrated persistence, SQL and iFind add value?
 
-That is why the documentation is split into onboarding, architecture, scope and conventions instead of placing everything in a single technical summary.
+Future exploration may include additional search and discovery patterns on IRIS, including possible use of vector database features for selected terminology-server functions where they add real value.
+
+The documentation is split into onboarding, architecture, scope and conventions so the repository can support both implementation work and higher-level partner conversations.

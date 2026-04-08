@@ -1,15 +1,44 @@
 # Getting Started
 
-This guide is for developers who want to run the repository locally, load SNOMED content and verify that the server is working.
+This guide is for developers and partners who want to run the repository locally, load terminology content and verify that the server is working.
+
+The repository is intended to be multi-terminology.
+Today the practical paths are:
+
+- SNOMED CT
+- LOINC
+- the shared FHIR terminology surface over both
 
 ## What You Will Do
 
 1. build the container image
 2. start the stack
-3. load a SNOMED CT international release
-4. optionally load a national extension
-5. optionally apply SQL tuning
-6. verify native and FHIR endpoints
+3. load one or both terminologies
+4. verify native and FHIR behavior
+5. use the repo docs to understand the architecture better
+
+## Choose Your Onboarding Path
+
+### Fastest Path To Seeing It Work
+
+1. build and start the stack
+2. load one terminology
+3. run one native example
+4. run one FHIR example
+
+### FHIR-Focused Path
+
+1. build and start the stack
+2. load one or both terminologies
+3. use `docs/http/snomed-fhir-r4.http` and `docs/http/loinc-fhir-r4.http`
+4. then read [FHIR_SCOPE.md](../FHIR_SCOPE.md)
+
+### Architecture Path
+
+1. build and start the stack
+2. verify at least one native and one FHIR request
+3. read [docs/how-it-works.md](how-it-works.md)
+4. read [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ## Prerequisites
 
@@ -17,8 +46,8 @@ Before starting, make sure you have:
 
 - Docker and Docker Compose available
 - access to an InterSystems IRIS for Health environment compatible with this repository
-- a SNOMED CT International release ZIP
-- optionally, a national extension ZIP such as the Spanish edition
+- a SNOMED CT release ZIP if you want to run the SNOMED path
+- a LOINC release ZIP if you want to run the LOINC path
 
 ## Build The Image
 
@@ -38,9 +67,11 @@ docker compose build --pull=false
 docker compose up -d
 ```
 
-After startup, the container environment should initialize the terminology database and production components.
+After startup, the container environment should initialize the terminology database, production components and API surfaces.
 
-## Load SNOMED CT International
+## Load Terminology Content
+
+### Load SNOMED CT
 
 Place the international ZIP file in:
 
@@ -48,35 +79,33 @@ Place the international ZIP file in:
 iris/shared/in/snomed/base/
 ```
 
-The production process watches that location and will ingest the file.
+If you want to load an extension, place it in:
+
+```text
+iris/shared/in/snomed/extension/
+```
 
 Notes:
 
 - the environment is configured to create a `TERMINOLOGY-DATA` database with an initial size intended to reduce expansion overhead during load
-- the original scratch notes estimated about 3 minutes 40 seconds for this step in the local environment they were written for
 - actual timing will depend on your machine, IRIS configuration and release size
 
-## Load A National Extension
+### Load LOINC
 
-Place the extension ZIP file in:
+Place the LOINC ZIP file in:
 
 ```text
-iris/shared/in/
+iris/shared/in/loinc/
 ```
 
-The production process will ingest it after detection.
-
-Notes:
-
-- the original scratch notes estimated about 3 minutes 45 seconds for the Spanish edition in one local setup
-- actual timing will vary by environment
+The production process watches that location and will ingest the file.
 
 ## Optional SQL Tuning
 
 The repository includes:
 
-- [iris/shared/sql/sql-tuning-indexes.sql](iris/shared/sql/sql-tuning-indexes.sql)
-- [iris/shared/sql/reset-terminology-data.sql](iris/shared/sql/reset-terminology-data.sql)
+- [iris/shared/sql/sql-tuning-indexes.sql](../iris/shared/sql/sql-tuning-indexes.sql)
+- [iris/shared/sql/reset-terminology-data.sql](../iris/shared/sql/reset-terminology-data.sql)
 
 To load the tuning script in IRIS:
 
@@ -87,7 +116,7 @@ LOAD SQL FROM FILE '/iris-shared/sql/sql-tuning-indexes.sql' DIALECT 'IRIS' DELI
 To reset loaded terminology data in IRIS:
 
 ```sql
-LOAD SQL FROM FILE '/iris-shared/sql/reset-terminology-data.sql' DIALECT 'IRIS' DELIMITER ';'
+--LOAD SQL FROM FILE '/iris-shared/sql/reset-terminology-data.sql' DIALECT 'IRIS' DELIMITER ';'
 ```
 
 Apply the tuning script only when you want those statements enabled for your environment.
@@ -99,20 +128,22 @@ Use the reset script only in local development environments.
 
 Use:
 
-- [docs/http/snomed-native.http](docs/http/snomed-native.http)
+- [docs/http/snomed-native.http](http/snomed-native.http)
+- [docs/http/loinc-native.http](http/loinc-native.http)
 
 Recommended initial checks:
 
-- search concepts
-- get concept by ID
-- get ancestors or descendants
-- validate a known code
+- search
+- lookup
+- hierarchy navigation
+- validate-code
 
 ### FHIR API Checks
 
 Use:
 
-- [docs/http/snomed-fhir-r4.http](docs/http/snomed-fhir-r4.http)
+- [docs/http/snomed-fhir-r4.http](http/snomed-fhir-r4.http)
+- [docs/http/loinc-fhir-r4.http](http/loinc-fhir-r4.http)
 
 Recommended initial checks:
 
@@ -126,9 +157,10 @@ Recommended initial checks:
 
 Use:
 
-- [docs/sql/snomed-query-examples.md](docs/sql/snomed-query-examples.md)
+- [docs/sql/snomed-query-examples.md](sql/snomed-query-examples.md)
+- [docs/sql/loinc-query-examples.md](sql/loinc-query-examples.md)
 
-This is useful when you want to inspect the stored SNOMED and derived data directly.
+This is useful when you want to inspect stored source and runtime data directly.
 
 ## Run Unit Tests
 
@@ -171,7 +203,7 @@ Use:
 - `snomed` to run all tests under `iris/tests/snomed`
 - `loinc` to run all tests under `iris/tests/loinc`
 - `fhir` to run all tests under `iris/tests/fhir`
-- no suite argument to run all tests:
+- no suite argument to run all tests
 
 ```objectscript
 do ##class(%UnitTest.Manager).RunTest(, "/nodelete")
@@ -179,22 +211,29 @@ do ##class(%UnitTest.Manager).RunTest(, "/nodelete")
 
 The `/nodelete` flag is useful during development because it keeps the loaded test classes available after the run.
 
-## Suggested First Reading Order
+## What You Should Understand After This Guide
 
-After you verify the stack, read:
+After following this guide, you should understand:
 
-1. [docs/how-it-works.md](docs/how-it-works.md)
-2. [ARCHITECTURE.md](ARCHITECTURE.md)
-3. [FHIR_SCOPE.md](FHIR_SCOPE.md)
-4. [CONVENTIONS.md](CONVENTIONS.md)
+- the repo is a multi-terminology terminology server example on IRIS for Health
+- SNOMED CT and LOINC are both first-class examples in the current implementation
+- native and FHIR APIs are both part of the intended platform story
+- the underlying architecture is meant to support partner discussions as well as implementation work
+
+## Suggested Next Reading Order
+
+1. [docs/how-it-works.md](how-it-works.md)
+2. [ARCHITECTURE.md](../ARCHITECTURE.md)
+3. [FHIR_SCOPE.md](../FHIR_SCOPE.md)
+4. [CONVENTIONS.md](../CONVENTIONS.md)
 
 ## Troubleshooting Focus Areas
 
 If the system does not behave as expected, start by checking:
 
-- whether the expected ZIP files were copied into the correct shared folders
+- whether the expected release packages were copied into the correct shared folders
 - whether the production process detected and processed them
-- whether preferred term and closure build steps completed
+- whether runtime build steps completed
 - whether the `releaseId`, `lang` and `dialect` values used in requests match the data actually loaded
 
-The next place to look is [docs/how-it-works.md](docs/how-it-works.md), which explains the flow from release intake to API query handling.
+The next place to look is [docs/how-it-works.md](how-it-works.md), which explains the flow from release intake to API query handling.

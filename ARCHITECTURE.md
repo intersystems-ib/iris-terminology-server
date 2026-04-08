@@ -4,79 +4,95 @@
 
 Build a terminology server on InterSystems IRIS for Health that:
 
-- starts from a working SNOMED CT implementation
-- evolves into a reusable multi-terminology foundation
-- exposes FHIR terminology capabilities progressively
-- serves as an open source reference for developers implementing terminology services on IRIS
+- supports multiple terminologies through one architectural model
+- currently exposes SNOMED CT and LOINC
+- exposes both native and FHIR terminology APIs
+- uses IRIS features such as interoperability, persistence, SQL and iFind in one integrated platform
+- serves as a reference implementation for developers and partner conversations
 
 ## Documentation Positioning
 
-This file explains how the repository is structured and how it currently works.
+This file explains how the repository is structured and why the architecture is shaped this way.
 
 For setup steps, use [docs/getting-started.md](docs/getting-started.md).
 For a narrative walkthrough, use [docs/how-it-works.md](docs/how-it-works.md).
 For contribution rules, use [CONVENTIONS.md](CONVENTIONS.md).
 
+## Architectural Position
+
+This repository is intentionally not built around one universal terminology schema.
+
+Instead it uses:
+
+- shared service contracts where there is a real common concept
+- terminology-specific adapters where behavior diverges
+- terminology-specific repositories where storage and query semantics diverge
+- thin native and FHIR layers on top
+
+That approach allows the server to expose one integrated view while still respecting the real complexity of SNOMED CT, LOINC and future terminologies.
+
+## Why IRIS For Health Fits This Problem
+
+IRIS for Health is part of the architecture, not just the runtime.
+
+The repository takes advantage of IRIS for:
+
+- production-based ingestion and operational orchestration
+- persistent storage and SQL access
+- integrated FHIR exposure
+- iFind-backed search where that improves runtime query behavior
+- one environment for load, build, query and API delivery
+
+This is why the repository can present one terminology server instead of a loose collection of disconnected services.
+
 ## Current Implemented Architecture
 
-The repository already contains a working SNOMED-oriented server with:
+The repository already contains a working multi-terminology server with:
 
-- file-driven RF2 ingestion
-- source tables for core SNOMED components
-- derived tables for preferred terms and hierarchy traversal
-- a native REST API
-- an initial FHIR terminology API
-- a common service layer that can route terminology operations
+- SNOMED CT ingestion, runtime structures and native/FHIR exposure
+- LOINC ingestion, runtime structures and native/FHIR exposure
+- a common service layer that routes supported terminology operations
+- terminology-specific adapters and repositories underneath that common layer
 
 ### Runtime Request Flow
 
 ```text
 Client
   |
-  v
-REST / FHIR API
+  +--> Native terminology APIs
   |
-  v
-Gateway / Service Layer
-  |
-  v
-Repository
-  |
-  v
-IRIS Tables
+  +--> FHIR terminology APIs
+          |
+          v
+  Terminology.Core.TermService
+          |
+          +--> SNOMED adapter -> SNOMED repository
+          |
+          +--> LOINC adapter  -> LOINC repository
+          |
+          v
+      IRIS tables
 ```
 
 ### Load And Build Flow
 
 ```text
-RF2 files
+Terminology release packages
   |
   v
-SnomedRf2FileService
+IRIS production / file intake
+  |
+  +--> SNOMED load + build
+  |
+  +--> LOINC load + build
   |
   v
-SnomedRf2Load / LoaderRf2
-  |
-  v
-Concept / Description / Relationship / RefsetMember
-  |
-  +--> BuilderPreferredTerm -> PreferredTerm
-  |
-  +--> BuilderIsaClosure -> IsaClosure
+Terminology-specific source and runtime tables
 ```
 
 ## Current Main Components
 
-### Native SNOMED API Path
-
-- `Terminology.Production.API`
-- `Terminology.Production.BS.SnomedGatewayService`
-- `Terminology.Production.BO.SnomedRepositoryOperation`
-- `Terminology.Snomed.SnomedRepository`
-
-This path exposes SNOMED-specific native endpoints for search, lookup, hierarchy navigation, refsets and validation.
-
-### FHIR Terminology Path
+### Shared FHIR And Service Path
 
 - `Terminology.Fhir.Interactions`
 - `Terminology.Fhir.Operations.TerminologyOperations`
@@ -86,11 +102,37 @@ This path exposes SNOMED-specific native endpoints for search, lookup, hierarchy
   - `Terminology.Fhir.Operations.SubsumesOperation`
   - `Terminology.Fhir.Operations.ExpandOperation`
 - `Terminology.Core.TermService`
-- terminology adapters such as `Terminology.Snomed.SnomedAdapter`
 
-This path exposes a FHIR-oriented surface while reusing shared terminology behavior instead of querying SNOMED tables directly from the FHIR layer.
+This path exposes one FHIR-oriented surface while routing behavior to the appropriate terminology implementation.
 
-### Load And Build Path
+### Native SNOMED Path
+
+- `Terminology.Production.API`
+- `Terminology.Production.BS.SnomedGatewayService`
+- `Terminology.Production.BO.SnomedRepositoryOperation`
+- `Terminology.Snomed.SnomedRepository`
+
+This path exposes SNOMED-specific native operations for search, lookup, hierarchy navigation, refsets and validation.
+
+### Native LOINC Path
+
+- `Terminology.Production.API`
+- `Terminology.Production.BS.LoincGatewayService`
+- `Terminology.Production.BO.LoincRepositoryOperation`
+- `Terminology.Loinc.LoincRepository`
+
+This path exposes LOINC-specific native operations for search, lookup, displays, parts, hierarchy navigation, groups and validation.
+
+### Terminology Adapters
+
+- `Terminology.Snomed.SnomedAdapter`
+- `Terminology.Loinc.LoincAdapter`
+
+These classes translate common terminology operations into terminology-specific repository behavior.
+
+### Load And Build Paths
+
+SNOMED:
 
 - `Terminology.Production.BS.SnomedRf2FileService`
 - `Terminology.Production.BP.SnomedRf2Load`
@@ -98,45 +140,88 @@ This path exposes a FHIR-oriented surface while reusing shared terminology behav
 - `Terminology.Snomed.Utils.BuilderPreferredTerm`
 - `Terminology.Snomed.Utils.BuilderIsaClosure`
 
-This path turns incoming RF2 releases into runtime-ready structures.
+LOINC:
+
+- `Terminology.Production.BS.LoincFileService`
+- `Terminology.Production.BP.LoincLoad`
+- `Terminology.Loinc.Utils.Loader`
+- `Terminology.Loinc.Utils.BuilderDisplay`
+- `Terminology.Loinc.Utils.BuilderHierarchy`
+
+## Why TermService, Adapters And Repositories
+
+### TermService
+
+`Terminology.Core.TermService` exists to define the integrated logical view of the server.
+
+Responsibilities:
+
+- expose shared terminology operations
+- route requests to the correct adapter
+- keep API and FHIR layers from hard-coding terminology-specific internals
+
+### Adapters
+
+Adapters exist because shared operations do not mean identical terminology behavior.
+
+Responsibilities:
+
+- translate shared operations into terminology-specific behavior
+- preserve terminology-specific semantics when the common contract is too coarse to express them directly
+- shield API and FHIR layers from storage and model details
+
+### Repositories
+
+Repositories exist because SQL and physical query behavior are still terminology-specific.
+
+Responsibilities:
+
+- contain SQL
+- map rows into DTO/result shapes
+- encode IRIS-specific query optimization choices such as iFind usage and ordering semantics
+
+This separation is important.
+It lets the repo expose one server while still allowing each terminology to keep its own model, hierarchy behavior and runtime optimization strategy.
 
 ## Data Model
 
-### Source Tables
+The physical model is intentionally terminology-specific where that makes sense.
 
-The base SNOMED content is stored in terminology-specific tables:
+### SNOMED Data Model
+
+Source tables:
 
 - `Terminology_Snomed.Concept`
 - `Terminology_Snomed.Description`
 - `Terminology_Snomed.Relationship`
 - `Terminology_Snomed.RefsetMember`
 
-These tables retain the semantics of the imported RF2 content and act as the authoritative stored source for downstream build steps.
-
-### Derived Tables
-
-The project also builds optimized runtime tables:
+Derived tables:
 
 - `Terminology_Snomed.PreferredTerm`
 - `Terminology_Snomed.PreferredTermStage`
 - `Terminology_Snomed.IsaClosure`
 - `Terminology_Snomed.LanguageRefSetConfig`
 
-These tables exist because some API behaviors should not repeatedly resolve language preference, transitive hierarchy or runtime search logic from raw RF2 rows.
+### LOINC Data Model
 
-### Data Model Rationale
+Source/runtime tables:
 
-```text
-RF2 source content
-  |
-  +--> stored with close fidelity to SNOMED structures
-  |
-  +--> transformed into optimized runtime tables
-          |
-          +--> faster preferred-term lookup
-          +--> faster ancestor/descendant traversal
-          +--> simpler API and repository queries
-```
+- `Terminology_Loinc.Code`
+- `Terminology_Loinc.Display`
+- `Terminology_Loinc.Part`
+- `Terminology_Loinc.CodePartLink`
+- `Terminology_Loinc.HierarchyEdge`
+- `Terminology_Loinc.Closure`
+- `Terminology_Loinc.LoincGroup`
+- `Terminology_Loinc.GroupMember`
+
+### Shared Metadata
+
+Shared metadata used by the integrated API/FHIR layers is stored separately in the core area, for example:
+
+- `Terminology_Core.CodeSystem`
+- `Terminology_Core.VersionRelease`
 
 ## End-To-End Flow
 
@@ -144,35 +229,39 @@ RF2 source content
 
 The containerized environment watches input folders under `iris/shared/`.
 
-Typical flow:
+Current examples:
 
-- the international SNOMED package is placed in `iris/shared/in/snomed/base/`
-- an extension package is placed in 'iris/shared/in/snomed/extension`
-- the production detects those files
-- the load process imports the RF2 records into SNOMED source tables
+- SNOMED packages under `iris/shared/in/snomed/`
+- LOINC packages under `iris/shared/in/loinc/`
 
-### 2. Release Normalization
+The IRIS production detects those files and starts the appropriate terminology load flow.
 
-The RF2 loader merges imported content into a single runtime release context and preserves the identifiers and metadata needed for later terminology operations.
+### 2. Terminology-Specific Load
 
-### 3. Derived Structure Build
+Each terminology is loaded using terminology-aware logic.
 
-After source data is available, builder processes create:
+That is deliberate.
+The project does not pretend that SNOMED RF2 and LOINC package structures are the same.
 
-- preferred term rows for language- and dialect-aware display
-- closure rows for fast `is-a` traversal and subsumption checks
+### 3. Runtime Structure Build
+
+After raw content is loaded, build steps create runtime-optimized structures such as:
+
+- preferred-term structures
+- display structures
+- closure/hierarchy structures
+
+These exist so the server does not have to reconstruct expensive query semantics on every request.
 
 ### 4. Query Serving
 
-Once the derived structures exist, request handling becomes simpler:
+Once runtime structures exist:
 
-- native SNOMED endpoints route requests through the production/gateway/repository path
-- FHIR operations route requests through `Terminology.Core.TermService`
-- terminology-specific execution is delegated to the SNOMED adapter and repository layer
+- native terminology endpoints route through their terminology-specific operation and repository paths
+- FHIR operations route through `Terminology.Core.TermService`
+- adapters delegate execution to the correct terminology-specific repository
 
 ## Separation By Responsibility
-
-The architectural rule is to keep each layer narrow and explicit.
 
 ### API Layer
 
@@ -186,7 +275,7 @@ Responsibilities:
 Must not:
 
 - implement SQL
-- know SNOMED table structure in detail
+- know terminology table internals in detail
 - duplicate business logic already owned by services or repositories
 
 ### Terminology Service Layer
@@ -208,9 +297,10 @@ Responsibilities:
 - implement terminology-specific behavior behind common contracts
 - translate shared operations into terminology-specific repository calls
 
-Current example:
+Current examples:
 
 - `Terminology.Snomed.SnomedAdapter`
+- `Terminology.Loinc.LoincAdapter`
 
 ### Repository Layer
 
@@ -218,11 +308,12 @@ Responsibilities:
 
 - contain SQL
 - map rows into result shapes
-- encode IRIS-specific query optimizations
+- encode IRIS-specific query optimization
 
-Current example:
+Current examples:
 
 - `Terminology.Snomed.SnomedRepository`
+- `Terminology.Loinc.LoincRepository`
 
 ### Load / Build Layer
 
@@ -237,41 +328,41 @@ Responsibilities:
 
 ### Current State
 
-The repository is SNOMED-first.
+The repository already operates as a multi-terminology example, with SNOMED CT and LOINC implemented.
 
-That means:
+At the same time:
 
-- most physical tables are SNOMED-specific
-- load logic is centered on SNOMED RF2
-- native APIs are SNOMED-specific
-- FHIR support currently maps mainly to SNOMED-backed behavior
+- physical models remain terminology-specific
+- some native APIs are terminology-specific by design
+- the common service surface is still intentionally narrow
 
 ### Target Direction
 
 The target is a hybrid model:
 
-- a shared logical service contract for terminology operations
-- terminology-specific storage where that makes sense
-- additional adapters for future code systems instead of forcing a single universal schema
+- one integrated logical service contract for shared terminology operations
+- terminology-specific storage and behavior where needed
+- additional adapters for future code systems instead of forcing one universal schema
 
 ```text
-Core domain contracts
+Core terminology contracts
   |
   +--> SNOMED adapter
-  +--> future LOINC adapter
-  +--> future mapping adapter
+  +--> LOINC adapter
+  +--> future terminology adapters
 ```
 
 This avoids both extremes:
 
 - forcing all terminologies into one physical model
-- creating fully isolated implementations with no shared service contract
+- creating fully isolated implementations with no integrated service layer
 
 ## Near-Term Architectural Priorities
 
-### 1. Preserve The Working SNOMED Base
+### 1. Preserve The Working Terminology Implementations
 
-The current SNOMED implementation is the foundation. Architectural changes should extend it, not replace it.
+The current SNOMED and LOINC implementations are the working base.
+Architectural changes should extend them, not flatten them.
 
 ### 2. Stabilize The Shared Contract
 
@@ -282,15 +373,16 @@ Current justified shared operations include:
 - lookup
 - validate-code
 - subsumes
-- concept search
+- search
+- value set metadata and expansion support where already implemented
 
 ### 3. Keep FHIR On Top Of Services
 
-FHIR operations should depend on shared terminology services, not query physical SNOMED tables directly.
+FHIR operations should depend on shared terminology services, not query terminology tables directly.
 
-### 4. Add More Terminologies Only After The Contract Holds
+### 4. Add More Terminologies Through Adapters
 
-A second terminology should be added after the common service contract is stable enough to support it without broad rework.
+Future terminologies should plug in through the same service/adapter/repository pattern.
 
 ## Package Direction
 
@@ -298,9 +390,9 @@ The intended package shape is:
 
 - `Terminology.Core`
 - `Terminology.Snomed`
+- `Terminology.Loinc`
 - `Terminology.Fhir`
 - `Terminology.Mapping`
-- `Terminology.Loinc`
 
 Within each area, keep responsibilities separated by:
 
@@ -311,23 +403,13 @@ Within each area, keep responsibilities separated by:
 - load
 - build
 
-## Non-Goals For The First MVP
+## Non-Goals For The Current Stage
 
-Not required in the first iteration:
+Not required in the current stage:
 
-- complete FHIR terminology parity
-- full multi-terminology support
+- complete enterprise FHIR terminology parity
 - authoring workflows
-- governance UI
-- a full generic ValueSet composition engine
-- broad abstractions that do not yet support multiple real use cases
+- one universal physical schema for every terminology
+- promising future implementation directions before the current common contract is stable
 
-## Architectural Rule For Contributors
-
-When modifying code:
-
-- extend the current structure rather than rewriting it
-- keep SNOMED-specific logic out of generic FHIR classes
-- keep SQL inside repositories
-- document new service contracts before widening them
-- update this file when the implemented runtime flow changes
+Exploration areas may grow later, including additional search and discovery patterns on IRIS, but the current architectural focus remains the integrated multi-terminology server built on the existing IRIS capabilities.
