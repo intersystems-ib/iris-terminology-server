@@ -140,6 +140,7 @@ For the full setup and verification flow, see [docs/getting-started.md](docs/get
 - [docs/http/icd-fhir-r4.http](docs/http/icd-fhir-r4.http): ICD FHIR examples
 - [docs/sql/snomed-query-examples.md](docs/sql/snomed-query-examples.md): direct SQL examples for SNOMED
 - [docs/sql/loinc-query-examples.md](docs/sql/loinc-query-examples.md): direct SQL examples for LOINC
+- [docs/sql/icd-query-examples.md](docs/sql/icd-query-examples.md): direct SQL examples for ICD
 
 ## Suggested Reading Paths
 

@@ -173,6 +173,7 @@ Use:
 
 - [docs/sql/snomed-query-examples.md](sql/snomed-query-examples.md)
 - [docs/sql/loinc-query-examples.md](sql/loinc-query-examples.md)
+- [docs/sql/icd-query-examples.md](sql/icd-query-examples.md)
 
 This is useful when you want to inspect stored source and runtime data directly.
 
