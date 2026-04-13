@@ -20,3 +20,10 @@ TUNE TABLE Terminology_Loinc.HierarchyEdge;
 TUNE TABLE Terminology_Loinc.Closure;
 TUNE TABLE Terminology_Loinc.LoincGroup;
 TUNE TABLE Terminology_Loinc.GroupMember;
+
+-- icd
+TUNE TABLE Terminology_ICD.Code;
+TUNE TABLE Terminology_ICD.Family;
+TUNE TABLE Terminology_ICD.Chapter;
+TUNE TABLE Terminology_ICD.HierarchyEdge;
+TUNE TABLE Terminology_ICD.LoadStage;

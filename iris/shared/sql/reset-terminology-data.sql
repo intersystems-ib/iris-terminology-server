@@ -23,6 +23,13 @@ TRUNCATE TABLE Terminology_Loinc.CodePartLink;
 TRUNCATE TABLE Terminology_Loinc.Part;
 TRUNCATE TABLE Terminology_Loinc.Code;
 
+-- icd
+TRUNCATE TABLE Terminology_ICD.HierarchyEdge;
+TRUNCATE TABLE Terminology_ICD.Code;
+TRUNCATE TABLE Terminology_ICD.Family;
+TRUNCATE TABLE Terminology_ICD.Chapter;
+TRUNCATE TABLE Terminology_ICD.LoadStage;
+
 TRUNCATE TABLE Terminology_Core.VersionRelease;
 TRUNCATE TABLE Terminology_Core.LicenseNotice;
 TRUNCATE TABLE Terminology_Core.CodeSystem;
