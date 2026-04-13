@@ -1,4 +1,4 @@
-Class Terminology.Production.Msg.ICDValidateCodeRequest Extends Ens.Request
+Class Terminology.Production.Msg.ICDValidateCodeRequest Extends Terminology.Production.Msg.BaseRequest
 {
 
 Property ReleaseId As %String;

@@ -1,4 +1,4 @@
-Class Terminology.Production.Msg.ICDLoadRequest Extends Ens.Request
+Class Terminology.Production.Msg.ICDLoadRequest Extends Terminology.Production.Msg.BaseRequest
 {
 
 Property FilePath As %String(MAXLEN = 200);
