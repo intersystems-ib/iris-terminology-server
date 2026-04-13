@@ -31,11 +31,11 @@ Method SearchConcepts(pReleaseId As %String = "", pVersion As %Integer = "", pCo
 
         If pQuery'="" {
             Set whereList = whereList_$ListBuild("%ID %FIND search_index(IXDescriptionNormICDCode, ?)")
-            Do ..AddArgument(.args, .argCount, pQuery)
             Do ..AddArgument(.args, .argCount, ..NormalizeTerm(pQuery))
         }
 
         Set query = ..BuildQuery(sql, whereList, endSQL)
+        
         Set tSC = ..ExecuteQuery(query, .args, argCount, .rset)
         $$$ThrowOnError(tSC)
 

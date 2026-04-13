@@ -3,7 +3,7 @@ Class Terminology.ICD.DTO.SearchItem Extends Terminology.ICD.DTO.Base
 
 Property Code As %String;
 
-Property Description As %String;
+Property Description As %String(MAXLEN = 500);
 
 Property Version As %Integer;
 
