@@ -3,7 +3,7 @@ Class Terminology.ICD.DTO.FamilyItem Extends Terminology.ICD.DTO.Base
 
 Property FamilyCode As %String;
 
-Property Description As %String;
+Property Description As %String(MAXLEN = 500);
 
 Property ChapterCode As %String;
 
