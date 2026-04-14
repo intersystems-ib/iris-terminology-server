@@ -48,14 +48,15 @@ export function LoginPage() {
         <section className="hero-panel">
           <div className="hero-heading">
             <div>
-              <p className="eyebrow">IRIS Demo UI</p>
-              <h1 className="hero-title">One terminology server. Multiple clinical vocabularies.</h1>
+              <p className="eyebrow">IRIS Terminology Server</p>
+              <h1 className="hero-title">A multi-terminology server on IRIS for Health.</h1>
             </div>
-            <p className="pill">MVP</p>
+            <p className="pill">Demo UI</p>
           </div>
           <p className="hero-copy">
-            Connect to an InterSystems IRIS terminology server, validate credentials against the live FHIR metadata
-            endpoint, and open a guided demo surface for SNOMED CT, LOINC and ICD.
+            This UI presents a practical example of how InterSystems IRIS for Health can support SNOMED CT, LOINC, and
+            ICD in one integrated terminology server, with terminology-specific runtime models underneath and both
+            native and FHIR APIs on top.
           </p>
 
           <div className="status-list">

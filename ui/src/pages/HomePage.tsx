@@ -5,10 +5,10 @@ export function HomePage() {
   return (
     <main className="content-panel">
       <p className="eyebrow">Available Terminologies</p>
-      <h2 className="section-title">Choose the demo path you want to show.</h2>
+      <h2 className="section-title">Open one terminology and explore how the server behaves.</h2>
       <p className="section-copy">
-        Start with one terminology, then move into its dedicated workspace. The next screen keeps the same terminology
-        context while switching between native and FHIR execution models.
+        Each workspace stays close to the implemented APIs in this repository, so you can move from a partner-facing
+        demo into concrete native and FHIR behavior without changing context.
       </p>
 
       <div className="grid home-grid">
