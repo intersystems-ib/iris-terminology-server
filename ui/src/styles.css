@@ -468,6 +468,13 @@ select {
 
 .workspace-section-header {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.workspace-section-heading {
+  display: flex;
   align-items: center;
   gap: 12px;
 }
@@ -491,9 +498,25 @@ select {
   font-size: 1.2rem;
 }
 
+.section-toggle-button {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.section-toggle-button:hover {
+  color: var(--text);
+}
+
 .workspace-operation .workspace-form,
 .workspace-result-section .workspace-result,
-.workspace-technical .request-panel {
+.workspace-technical .workspace-result {
   border-radius: 28px;
 }
 
@@ -511,7 +534,7 @@ select {
     rgba(255, 255, 255, 0.96);
 }
 
-.workspace-technical .request-panel {
+.workspace-technical .workspace-result {
   border: 1px solid rgba(23, 50, 58, 0.16);
   background:
     linear-gradient(180deg, rgba(23, 50, 58, 0.06), rgba(255, 255, 255, 0.92) 18%),
@@ -597,7 +620,9 @@ select {
   .shell-header,
   .workspace-header,
   .request-panel-top,
-  .workspace-heading {
+  .workspace-heading,
+  .workspace-section-header,
+  .workspace-section-heading {
     flex-direction: column;
     align-items: start;
   }

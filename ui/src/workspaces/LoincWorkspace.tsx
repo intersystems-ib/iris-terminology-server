@@ -4,45 +4,45 @@ import { authenticatedJsonRequest, type RequestRecord } from "../lib/api";
 import { useAuth } from "../state/AuthContext";
 
 type ApiMode = "native" | "fhir";
-type TabId = "search" | "lookup" | "hierarchy" | "validate" | "subsumes" | "valueset";
+type TabId = "search" | "lookup" | "parts" | "hierarchy" | "validate" | "subsumes" | "valueset";
 
 type RunResult = {
   request: RequestRecord;
   label: string;
 };
 
-type SnomedFormState = {
+type LoincFormState = {
   releaseId: string;
   lang: string;
-  dialect: string;
   searchQuery: string;
-  conceptId: string;
-  hierarchyConceptId: string;
-  hierarchyDirection: "ancestors" | "descendants" | "children";
-  hierarchyIncludeSelf: "0" | "1";
+  loincNum: string;
+  hierarchyCode: string;
+  hierarchyDirection: "ancestors" | "descendants";
+  hierarchyType: string;
   hierarchyMaxDepth: string;
   code: string;
   codeA: string;
   codeB: string;
   valueSetId: string;
+  valueSetUrl: string;
   valueSetCount: string;
   valueSetOffset: string;
 };
 
-const defaultState: SnomedFormState = {
-  releaseId: "SNOMED CT version 20260101",
+const defaultState: LoincFormState = {
+  releaseId: "2.82",
   lang: "es",
-  dialect: "es-ES",
-  searchQuery: "infarto",
-  conceptId: "22298006",
-  hierarchyConceptId: "22298006",
-  hierarchyDirection: "ancestors",
-  hierarchyIncludeSelf: "0",
+  searchQuery: "hemo",
+  loincNum: "718-7",
+  hierarchyCode: "LP392452-1",
+  hierarchyDirection: "descendants",
+  hierarchyType: "COMPONENTBYSYSTEM",
   hierarchyMaxDepth: "10",
-  code: "22298006",
-  codeA: "64572001",
-  codeB: "22298006",
-  valueSetId: "900000000000497000",
+  code: "718-7",
+  codeA: "LP392452-1",
+  codeB: "718-7",
+  valueSetId: "loinc-group-LG51020-2",
+  valueSetUrl: "http://loinc.org/vs/LG51020-2",
   valueSetCount: "10",
   valueSetOffset: "0"
 };
@@ -50,17 +50,18 @@ const defaultState: SnomedFormState = {
 const tabDefinitions: Array<{ id: TabId; label: string; modeSupport: "both" | "native" | "fhir" }> = [
   { id: "search", label: "Search", modeSupport: "native" },
   { id: "lookup", label: "Lookup", modeSupport: "both" },
+  { id: "parts", label: "Parts", modeSupport: "native" },
   { id: "hierarchy", label: "Hierarchy", modeSupport: "native" },
   { id: "validate", label: "Validate", modeSupport: "both" },
   { id: "subsumes", label: "Subsumes", modeSupport: "both" },
   { id: "valueset", label: "ValueSet", modeSupport: "fhir" }
 ];
 
-export function SnomedWorkspace() {
+export function LoincWorkspace() {
   const { session } = useAuth();
   const [apiMode, setApiMode] = useState<ApiMode>("native");
   const [activeTab, setActiveTab] = useState<TabId>("search");
-  const [formState, setFormState] = useState<SnomedFormState>(defaultState);
+  const [formState, setFormState] = useState<LoincFormState>(defaultState);
   const [collapsedSections, setCollapsedSections] = useState({
     operation: false,
     result: false,
@@ -71,14 +72,11 @@ export function SnomedWorkspace() {
   const [lastResult, setLastResult] = useState<RunResult | null>(null);
 
   const availableTabs = useMemo(
-    () =>
-      tabDefinitions.filter((tab) => {
-        return tab.modeSupport === "both" || tab.modeSupport === apiMode;
-      }),
+    () => tabDefinitions.filter((tab) => tab.modeSupport === "both" || tab.modeSupport === apiMode),
     [apiMode]
   );
 
-  function updateField<K extends keyof SnomedFormState>(field: K, value: SnomedFormState[K]) {
+  function updateField<K extends keyof LoincFormState>(field: K, value: LoincFormState[K]) {
     setFormState((current) => ({
       ...current,
       [field]: value
@@ -114,7 +112,7 @@ export function SnomedWorkspace() {
       const request = await authenticatedJsonRequest(session, path, accept);
       setLastResult({ request, label });
     } catch (error) {
-      const fallbackMessage = error instanceof Error ? error.message : "The SNOMED request failed.";
+      const fallbackMessage = error instanceof Error ? error.message : "The LOINC request failed.";
       const requestRecord =
         typeof error === "object" && error !== null && "requestRecord" in error
           ? (error.requestRecord as RequestRecord)
@@ -133,70 +131,68 @@ export function SnomedWorkspace() {
     switch (activeTab) {
       case "search":
         await runAction(
-          "SNOMED search",
-          `/terminology/snomed/search?q=${encodeURIComponent(formState.searchQuery)}&releaseId=${encodeURIComponent(formState.releaseId)}&lang=${encodeURIComponent(formState.lang)}&dialect=${encodeURIComponent(formState.dialect)}&limit=20&offset=0`,
+          "LOINC search",
+          `/terminology/loinc/search?q=${encodeURIComponent(formState.searchQuery)}&releaseId=${encodeURIComponent(formState.releaseId)}&lang=${encodeURIComponent(formState.lang)}&limit=20&offset=0`,
           "application/json"
         );
         return;
       case "lookup":
         if (apiMode === "native") {
           await runAction(
-            "SNOMED concept lookup",
-            `/terminology/snomed/concepts/${encodeURIComponent(formState.conceptId)}?releaseId=${encodeURIComponent(formState.releaseId)}&lang=${encodeURIComponent(formState.lang)}&dialect=${encodeURIComponent(formState.dialect)}`,
+            "LOINC code lookup",
+            `/terminology/loinc/codes/${encodeURIComponent(formState.loincNum)}?releaseId=${encodeURIComponent(formState.releaseId)}`,
             "application/json"
           );
           return;
         }
 
         await runAction(
-          "SNOMED FHIR lookup",
-          `/terminology/fhir/r4/CodeSystem/$lookup?system=${encodeURIComponent("http://snomed.info/sct")}&code=${encodeURIComponent(formState.conceptId)}&displayLanguage=${encodeURIComponent(formState.lang)}`,
+          "LOINC FHIR lookup",
+          `/terminology/fhir/r4/CodeSystem/$lookup?system=${encodeURIComponent("http://loinc.org")}&code=${encodeURIComponent(formState.loincNum)}&displayLanguage=${encodeURIComponent(formState.lang)}`,
           "application/fhir+json"
+        );
+        return;
+      case "parts":
+        await runAction(
+          "LOINC parts",
+          `/terminology/loinc/codes/${encodeURIComponent(formState.loincNum)}/parts?releaseId=${encodeURIComponent(formState.releaseId)}&limit=200&offset=0`,
+          "application/json"
         );
         return;
       case "hierarchy":
         await runAction(
-          `SNOMED ${formState.hierarchyDirection}`,
-          `/terminology/snomed/concepts/${encodeURIComponent(formState.hierarchyConceptId)}/${formState.hierarchyDirection}?releaseId=${encodeURIComponent(formState.releaseId)}&view=inferred&lang=${encodeURIComponent(formState.lang)}&dialect=${encodeURIComponent(formState.dialect)}&includeSelf=${encodeURIComponent(formState.hierarchyIncludeSelf)}&maxDepth=${encodeURIComponent(formState.hierarchyMaxDepth)}&limit=50&offset=0`,
+          `LOINC ${formState.hierarchyDirection}`,
+          `/terminology/loinc/codes/${encodeURIComponent(formState.hierarchyCode)}/${formState.hierarchyDirection}?releaseId=${encodeURIComponent(formState.releaseId)}&hierarchyType=${encodeURIComponent(formState.hierarchyType)}&maxDepth=${encodeURIComponent(formState.hierarchyMaxDepth)}&limit=100&offset=0`,
           "application/json"
         );
         return;
       case "validate":
         if (apiMode === "native") {
           await runAction(
-            "SNOMED validate code",
-            `/terminology/snomed/validate-code?releaseId=${encodeURIComponent(formState.releaseId)}&code=${encodeURIComponent(formState.code)}`,
+            "LOINC validate code",
+            `/terminology/loinc/validate-code?releaseId=${encodeURIComponent(formState.releaseId)}&code=${encodeURIComponent(formState.code)}`,
             "application/json"
           );
           return;
         }
 
         await runAction(
-          "SNOMED FHIR validate code",
-          `/terminology/fhir/r4/CodeSystem/$validate-code?system=${encodeURIComponent("http://snomed.info/sct")}&code=${encodeURIComponent(formState.code)}`,
+          "LOINC FHIR validate code",
+          `/terminology/fhir/r4/CodeSystem/$validate-code?system=${encodeURIComponent("http://loinc.org")}&code=${encodeURIComponent(formState.code)}`,
           "application/fhir+json"
         );
         return;
       case "subsumes":
-        if (apiMode === "native") {
-          await runAction(
-            "SNOMED subsumes",
-            `/terminology/snomed/subsumes/${encodeURIComponent(formState.codeA)}/${encodeURIComponent(formState.codeB)}?releaseId=${encodeURIComponent(formState.releaseId)}&view=inferred`,
-            "application/json"
-          );
-          return;
-        }
-
         await runAction(
-          "SNOMED FHIR subsumes",
-          `/terminology/fhir/r4/CodeSystem/$subsumes?system=${encodeURIComponent("http://snomed.info/sct")}&codeA=${encodeURIComponent(formState.codeA)}&codeB=${encodeURIComponent(formState.codeB)}`,
+          apiMode === "native" ? "LOINC subsumes via FHIR layer" : "LOINC FHIR subsumes",
+          `/terminology/fhir/r4/CodeSystem/$subsumes?system=${encodeURIComponent("http://loinc.org")}&codeA=${encodeURIComponent(formState.codeA)}&codeB=${encodeURIComponent(formState.codeB)}`,
           "application/fhir+json"
         );
         return;
       case "valueset":
         await runAction(
-          "SNOMED ValueSet expand",
-          `/terminology/fhir/r4/ValueSet/$expand?url=${encodeURIComponent(`http://snomed.info/sct?fhir_vs=refset/${formState.valueSetId}`)}&displayLanguage=${encodeURIComponent(formState.lang)}&count=${encodeURIComponent(formState.valueSetCount)}&offset=${encodeURIComponent(formState.valueSetOffset)}`,
+          "LOINC ValueSet expand",
+          `/terminology/fhir/r4/ValueSet/$expand?url=${encodeURIComponent(formState.valueSetUrl)}&displayLanguage=${encodeURIComponent(formState.lang)}&count=${encodeURIComponent(formState.valueSetCount)}&offset=${encodeURIComponent(formState.valueSetOffset)}`,
           "application/fhir+json"
         );
         return;
@@ -222,12 +218,12 @@ export function SnomedWorkspace() {
               <TerminologyIcon />
             </div>
             <div>
-            <p className="eyebrow">SNOMED CT Workspace</p>
-            <h2 className="section-title">Explore one terminology through native and FHIR APIs.</h2>
-            <p className="section-copy">
-              Stay inside the SNOMED context, switch the execution mode, and run demo-friendly actions using the same
-              example values from the repo HTTP files.
-            </p>
+              <p className="eyebrow">LOINC Workspace</p>
+              <h2 className="section-title">Explore LOINC through native and FHIR terminology APIs.</h2>
+              <p className="section-copy">
+                Use one workspace to move between search, code lookup, parts, hierarchy navigation, validation,
+                subsumption and ValueSet expansion using the example values from the repo docs.
+              </p>
             </div>
           </div>
           <div className="workspace-meta">
@@ -256,7 +252,7 @@ export function SnomedWorkspace() {
           </button>
         </div>
 
-        <div className="tab-row" role="tablist" aria-label="SNOMED actions">
+        <div className="tab-row" role="tablist" aria-label="LOINC actions">
           {availableTabs.map((tab) => (
             <button
               key={tab.id}
@@ -299,7 +295,7 @@ export function SnomedWorkspace() {
 
                 <div className="button-row">
                   <button className="button button-primary" type="button" disabled={isRunning} onClick={handleSubmit}>
-                    {isRunning ? "Running..." : getSubmitLabel(activeTab, apiMode)}
+                    {isRunning ? "Running..." : getSubmitLabel(activeTab)}
                   </button>
                   <button
                     className="button button-secondary"
@@ -371,7 +367,7 @@ export function SnomedWorkspace() {
                 <div>
                   <h3 className="form-title">Request and response</h3>
                   <p className="form-copy">
-                    Use this panel during demos to connect the UI action with the exact API call and payload.
+                    Use this panel during demos to connect the UI action with the exact LOINC API call and payload.
                   </p>
                 </div>
               </div>
@@ -397,7 +393,7 @@ export function SnomedWorkspace() {
               ) : (
                 <div className="placeholder">
                   <strong>No request yet</strong>
-                  <p>The raw URL, headers and response payload will appear here after you run a SNOMED action.</p>
+                  <p>The raw URL, headers and response payload will appear here after you run a LOINC action.</p>
                 </div>
               )}
             </section>
@@ -408,12 +404,274 @@ export function SnomedWorkspace() {
   );
 }
 
+function getActionTitle(activeTab: TabId, apiMode: ApiMode): string {
+  if (activeTab === "lookup" && apiMode === "fhir") return "FHIR CodeSystem lookup";
+  if (activeTab === "validate" && apiMode === "fhir") return "FHIR validate-code";
+  if (activeTab === "subsumes") return "FHIR subsumes";
+  if (activeTab === "valueset") return "FHIR ValueSet expansion";
+  return `Native ${activeTab}`;
+}
+
+function getActionCopy(activeTab: TabId, apiMode: ApiMode): string {
+  switch (activeTab) {
+    case "search":
+      return "Search LOINC codes through the native endpoint using the example text from the HTTP docs.";
+    case "lookup":
+      return apiMode === "native"
+        ? "Resolve one LOINC code through the native API."
+        : "Run the same lookup idea through the FHIR CodeSystem operation.";
+    case "parts":
+      return "Inspect the parts that make up one LOINC code.";
+    case "hierarchy":
+      return "Navigate LOINC ancestors or descendants for a selected hierarchy type.";
+    case "validate":
+      return apiMode === "native"
+        ? "Check whether a LOINC code exists in the selected release."
+        : "Call the FHIR validate-code operation for the same code.";
+    case "subsumes":
+      return "Check the parent-child relationship using the FHIR CodeSystem/$subsumes operation.";
+    case "valueset":
+      return "Expand a LOINC group ValueSet through the FHIR terminology layer.";
+  }
+}
+
+function getSubmitLabel(activeTab: TabId): string {
+  if (activeTab === "valueset") return "Expand ValueSet";
+  if (activeTab === "validate") return "Validate Code";
+  if (activeTab === "subsumes") return "Check Subsumption";
+  if (activeTab === "lookup") return "Run Lookup";
+  return "Run Request";
+}
+
+function getSummaryCopy(responseBody: unknown): string {
+  if (Array.isArray(responseBody)) {
+    return `The response returned ${responseBody.length} top-level items.`;
+  }
+
+  if (typeof responseBody === "object" && responseBody !== null) {
+    const record = responseBody as Record<string, unknown>;
+
+    if (Array.isArray(record.items)) {
+      return `The response includes ${record.items.length} items in the main collection.`;
+    }
+
+    if (Array.isArray(record.entry)) {
+      return `The response includes ${record.entry.length} FHIR bundle entries.`;
+    }
+
+    if (record.resourceType) {
+      return `FHIR resource type: ${String(record.resourceType)}.`;
+    }
+
+    return `The response returned ${Object.keys(record).length} top-level fields.`;
+  }
+
+  return "Run an action to inspect the live server response.";
+}
+
+function renderTabFields(
+  activeTab: TabId,
+  apiMode: ApiMode,
+  formState: LoincFormState,
+  updateField: <K extends keyof LoincFormState>(field: K, value: LoincFormState[K]) => void
+) {
+  const baseContextFields = (
+    <>
+      <div className="field">
+        <label htmlFor="loincReleaseId">Release ID</label>
+        <input
+          id="loincReleaseId"
+          value={formState.releaseId}
+          onChange={(event) => updateField("releaseId", event.target.value)}
+          disabled={apiMode === "fhir"}
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="loincLang">Language</label>
+        <input id="loincLang" value={formState.lang} onChange={(event) => updateField("lang", event.target.value)} />
+      </div>
+    </>
+  );
+
+  switch (activeTab) {
+    case "search":
+      return (
+        <>
+          {baseContextFields}
+          <div className="field">
+            <label htmlFor="loincSearchQuery">Search text</label>
+            <input
+              id="loincSearchQuery"
+              value={formState.searchQuery}
+              onChange={(event) => updateField("searchQuery", event.target.value)}
+            />
+          </div>
+        </>
+      );
+    case "lookup":
+    case "parts":
+      return (
+        <>
+          {baseContextFields}
+          <div className="field">
+            <label htmlFor="loincNum">LOINC number</label>
+            <input
+              id="loincNum"
+              value={formState.loincNum}
+              onChange={(event) => updateField("loincNum", event.target.value)}
+            />
+          </div>
+        </>
+      );
+    case "hierarchy":
+      return (
+        <>
+          {baseContextFields}
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="loincHierarchyCode">Code</label>
+              <input
+                id="loincHierarchyCode"
+                value={formState.hierarchyCode}
+                onChange={(event) => updateField("hierarchyCode", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="loincHierarchyDirection">Direction</label>
+              <select
+                id="loincHierarchyDirection"
+                className="select"
+                value={formState.hierarchyDirection}
+                onChange={(event) =>
+                  updateField("hierarchyDirection", event.target.value as LoincFormState["hierarchyDirection"])
+                }
+              >
+                <option value="ancestors">Ancestors</option>
+                <option value="descendants">Descendants</option>
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="loincHierarchyType">Hierarchy type</label>
+              <input
+                id="loincHierarchyType"
+                value={formState.hierarchyType}
+                onChange={(event) => updateField("hierarchyType", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="loincHierarchyMaxDepth">Max depth</label>
+              <input
+                id="loincHierarchyMaxDepth"
+                value={formState.hierarchyMaxDepth}
+                onChange={(event) => updateField("hierarchyMaxDepth", event.target.value)}
+              />
+            </div>
+          </div>
+        </>
+      );
+    case "validate":
+      return (
+        <>
+          {baseContextFields}
+          <div className="field">
+            <label htmlFor="loincCode">Code</label>
+            <input
+              id="loincCode"
+              value={formState.code}
+              onChange={(event) => updateField("code", event.target.value)}
+            />
+          </div>
+        </>
+      );
+    case "subsumes":
+      return (
+        <>
+          <div className="field">
+            <label htmlFor="loincLangSubsumes">Language</label>
+            <input
+              id="loincLangSubsumes"
+              value={formState.lang}
+              onChange={(event) => updateField("lang", event.target.value)}
+            />
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="loincCodeA">Code A</label>
+              <input
+                id="loincCodeA"
+                value={formState.codeA}
+                onChange={(event) => updateField("codeA", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="loincCodeB">Code B</label>
+              <input
+                id="loincCodeB"
+                value={formState.codeB}
+                onChange={(event) => updateField("codeB", event.target.value)}
+              />
+            </div>
+          </div>
+        </>
+      );
+    case "valueset":
+      return (
+        <>
+          <div className="field">
+            <label htmlFor="loincValueSetId">ValueSet ID</label>
+            <input
+              id="loincValueSetId"
+              value={formState.valueSetId}
+              onChange={(event) => updateField("valueSetId", event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="loincValueSetUrl">ValueSet URL</label>
+            <input
+              id="loincValueSetUrl"
+              value={formState.valueSetUrl}
+              onChange={(event) => updateField("valueSetUrl", event.target.value)}
+            />
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label htmlFor="loincValueSetCount">Count</label>
+              <input
+                id="loincValueSetCount"
+                value={formState.valueSetCount}
+                onChange={(event) => updateField("valueSetCount", event.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="loincValueSetOffset">Offset</label>
+              <input
+                id="loincValueSetOffset"
+                value={formState.valueSetOffset}
+                onChange={(event) => updateField("valueSetOffset", event.target.value)}
+              />
+            </div>
+          </div>
+          <div className="field">
+            <label htmlFor="loincValueSetLang">Display language</label>
+            <input
+              id="loincValueSetLang"
+              value={formState.lang}
+              onChange={(event) => updateField("lang", event.target.value)}
+            />
+          </div>
+        </>
+      );
+  }
+}
+
 function TerminologyIcon() {
   return (
     <svg viewBox="0 0 32 32" className="workspace-svg-icon">
-      <rect x="4" y="6" width="24" height="20" rx="6" fill="currentColor" opacity="0.14" />
+      <rect x="5" y="6" width="22" height="20" rx="6" fill="currentColor" opacity="0.14" />
       <path
-        d="M10 12h12M10 16h8M10 20h10M23 11l3 3-3 3"
+        d="M11 12h10M11 16h7M11 20h5M21 20h3M22 11l2 2-2 2"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
@@ -470,284 +728,4 @@ function TechnicalIcon() {
       />
     </svg>
   );
-}
-
-function getActionTitle(activeTab: TabId, apiMode: ApiMode): string {
-  if (activeTab === "lookup" && apiMode === "fhir") {
-    return "FHIR CodeSystem lookup";
-  }
-
-  if (activeTab === "validate" && apiMode === "fhir") {
-    return "FHIR validate-code";
-  }
-
-  if (activeTab === "subsumes" && apiMode === "fhir") {
-    return "FHIR subsumes";
-  }
-
-  if (activeTab === "valueset") {
-    return "FHIR ValueSet expansion";
-  }
-
-  return `Native ${activeTab}`;
-}
-
-function getActionCopy(activeTab: TabId, apiMode: ApiMode): string {
-  switch (activeTab) {
-    case "search":
-      return "Search SNOMED concepts using the native terminology endpoint and partner-friendly default inputs.";
-    case "lookup":
-      return apiMode === "native"
-        ? "Resolve one SNOMED concept through the native API."
-        : "Run the same lookup idea through the FHIR CodeSystem operation.";
-    case "hierarchy":
-      return "Navigate SNOMED ancestors, descendants or direct children from the same workspace.";
-    case "validate":
-      return apiMode === "native"
-        ? "Check whether a SNOMED concept code exists in the selected release."
-        : "Call the FHIR validate-code operation for the same concept.";
-    case "subsumes":
-      return apiMode === "native"
-        ? "Check whether one code subsumes another using the native SNOMED endpoint."
-        : "Run the FHIR CodeSystem/$subsumes operation for the same code pair.";
-    case "valueset":
-      return "Expand a SNOMED refset-backed ValueSet through the FHIR terminology layer.";
-  }
-}
-
-function getSubmitLabel(activeTab: TabId, apiMode: ApiMode): string {
-  if (activeTab === "valueset") {
-    return "Expand ValueSet";
-  }
-
-  if (activeTab === "validate") {
-    return apiMode === "native" ? "Validate Code" : "Run validate-code";
-  }
-
-  if (activeTab === "subsumes") {
-    return "Check Subsumption";
-  }
-
-  if (activeTab === "lookup") {
-    return "Run Lookup";
-  }
-
-  return "Run Request";
-}
-
-function getSummaryCopy(responseBody: unknown): string {
-  if (Array.isArray(responseBody)) {
-    return `The response returned ${responseBody.length} top-level items.`;
-  }
-
-  if (typeof responseBody === "object" && responseBody !== null) {
-    const record = responseBody as Record<string, unknown>;
-
-    if (Array.isArray(record.items)) {
-      return `The response includes ${record.items.length} items in the main collection.`;
-    }
-
-    if (Array.isArray(record.entry)) {
-      return `The response includes ${record.entry.length} FHIR bundle entries.`;
-    }
-
-    if (record.resourceType) {
-      return `FHIR resource type: ${String(record.resourceType)}.`;
-    }
-
-    return `The response returned ${Object.keys(record).length} top-level fields.`;
-  }
-
-  return "Run an action to inspect the live server response.";
-}
-
-function renderTabFields(
-  activeTab: TabId,
-  apiMode: ApiMode,
-  formState: SnomedFormState,
-  updateField: <K extends keyof SnomedFormState>(field: K, value: SnomedFormState[K]) => void
-) {
-  const baseContextFields = (
-    <>
-      <div className="field">
-        <label htmlFor="releaseId">Release ID</label>
-        <input
-          id="releaseId"
-          value={formState.releaseId}
-          onChange={(event) => updateField("releaseId", event.target.value)}
-          disabled={apiMode === "fhir"}
-        />
-      </div>
-      <div className="field-row">
-        <div className="field">
-          <label htmlFor="lang">Language</label>
-          <input id="lang" value={formState.lang} onChange={(event) => updateField("lang", event.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="dialect">Dialect</label>
-          <input
-            id="dialect"
-            value={formState.dialect}
-            onChange={(event) => updateField("dialect", event.target.value)}
-            disabled={apiMode === "fhir"}
-          />
-        </div>
-      </div>
-    </>
-  );
-
-  switch (activeTab) {
-    case "search":
-      return (
-        <>
-          {baseContextFields}
-          <div className="field">
-            <label htmlFor="searchQuery">Search text</label>
-            <input
-              id="searchQuery"
-              value={formState.searchQuery}
-              onChange={(event) => updateField("searchQuery", event.target.value)}
-            />
-          </div>
-        </>
-      );
-    case "lookup":
-      return (
-        <>
-          {baseContextFields}
-          <div className="field">
-            <label htmlFor="conceptId">Concept code</label>
-            <input
-              id="conceptId"
-              value={formState.conceptId}
-              onChange={(event) => updateField("conceptId", event.target.value)}
-            />
-          </div>
-        </>
-      );
-    case "hierarchy":
-      return (
-        <>
-          {baseContextFields}
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="hierarchyConceptId">Concept code</label>
-              <input
-                id="hierarchyConceptId"
-                value={formState.hierarchyConceptId}
-                onChange={(event) => updateField("hierarchyConceptId", event.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="hierarchyDirection">Direction</label>
-              <select
-                id="hierarchyDirection"
-                className="select"
-                value={formState.hierarchyDirection}
-                onChange={(event) =>
-                  updateField("hierarchyDirection", event.target.value as SnomedFormState["hierarchyDirection"])
-                }
-              >
-                <option value="ancestors">Ancestors</option>
-                <option value="descendants">Descendants</option>
-                <option value="children">Children</option>
-              </select>
-            </div>
-          </div>
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="hierarchyIncludeSelf">Include self</label>
-              <select
-                id="hierarchyIncludeSelf"
-                className="select"
-                value={formState.hierarchyIncludeSelf}
-                onChange={(event) =>
-                  updateField("hierarchyIncludeSelf", event.target.value as SnomedFormState["hierarchyIncludeSelf"])
-                }
-              >
-                <option value="0">No</option>
-                <option value="1">Yes</option>
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="hierarchyMaxDepth">Max depth</label>
-              <input
-                id="hierarchyMaxDepth"
-                value={formState.hierarchyMaxDepth}
-                onChange={(event) => updateField("hierarchyMaxDepth", event.target.value)}
-              />
-            </div>
-          </div>
-        </>
-      );
-    case "validate":
-      return (
-        <>
-          {baseContextFields}
-          <div className="field">
-            <label htmlFor="code">Code</label>
-            <input id="code" value={formState.code} onChange={(event) => updateField("code", event.target.value)} />
-          </div>
-        </>
-      );
-    case "subsumes":
-      return (
-        <>
-          {baseContextFields}
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="codeA">Code A</label>
-              <input
-                id="codeA"
-                value={formState.codeA}
-                onChange={(event) => updateField("codeA", event.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="codeB">Code B</label>
-              <input
-                id="codeB"
-                value={formState.codeB}
-                onChange={(event) => updateField("codeB", event.target.value)}
-              />
-            </div>
-          </div>
-        </>
-      );
-    case "valueset":
-      return (
-        <>
-          <div className="field">
-            <label htmlFor="valueSetId">Refset / ValueSet ID</label>
-            <input
-              id="valueSetId"
-              value={formState.valueSetId}
-              onChange={(event) => updateField("valueSetId", event.target.value)}
-            />
-          </div>
-          <div className="field-row">
-            <div className="field">
-              <label htmlFor="valueSetCount">Count</label>
-              <input
-                id="valueSetCount"
-                value={formState.valueSetCount}
-                onChange={(event) => updateField("valueSetCount", event.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="valueSetOffset">Offset</label>
-              <input
-                id="valueSetOffset"
-                value={formState.valueSetOffset}
-                onChange={(event) => updateField("valueSetOffset", event.target.value)}
-              />
-            </div>
-          </div>
-          <div className="field">
-            <label htmlFor="valuesetLang">Display language</label>
-            <input id="valuesetLang" value={formState.lang} onChange={(event) => updateField("lang", event.target.value)} />
-          </div>
-        </>
-      );
-  }
 }

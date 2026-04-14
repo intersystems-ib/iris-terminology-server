@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { TERMINOLOGIES } from "../config/demoConfig";
+import { LoincWorkspace } from "../workspaces/LoincWorkspace";
 import { SnomedWorkspace } from "../workspaces/SnomedWorkspace";
 
 export function TerminologyPage() {
@@ -22,6 +23,10 @@ export function TerminologyPage() {
 
   if (terminology.id === "snomed") {
     return <SnomedWorkspace />;
+  }
+
+  if (terminology.id === "loinc") {
+    return <LoincWorkspace />;
   }
 
   return (
