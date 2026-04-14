@@ -23,6 +23,7 @@ Today the main terminology examples are:
 
 - SNOMED CT
 - LOINC
+- ICD
 
 ## What Makes The Repo Interesting
 
@@ -44,6 +45,7 @@ Current examples:
 
 - SNOMED packages under `iris/shared/in/snomed/`
 - LOINC packages under `iris/shared/in/loinc/`
+- ICD source files under `iris/shared/in/icd/`
 
 The IRIS production layer detects those files and starts the appropriate terminology load flow.
 
@@ -70,6 +72,17 @@ The LOINC load flow is centered on:
 - `Terminology.Loinc.Utils.Loader`
 
 Its responsibility is to import LOINC package content into LOINC-specific tables.
+
+### ICD Example
+
+The ICD load flow is centered on:
+
+- `Terminology.Production.BS.ICDFileService`
+- `Terminology.Production.BP.ICDLoad`
+- `Terminology.ICD.Utils.BuilderCode`
+- `Terminology.ICD.Utils.BuilderHierarchy`
+
+Its responsibility is to import ICD source files into ICD-specific tables and then build the hierarchy structures used at runtime.
 
 This difference is intentional.
 The server is integrated at the service/API level, not by pretending every terminology starts from the same physical source structure.
@@ -110,9 +123,26 @@ Purpose:
 - fast hierarchy navigation
 - simpler query behavior at API time
 
+### ICD Runtime Example
+
+Relevant parts:
+
+- `Terminology.ICD.Utils.BuilderCode`
+- `Terminology.ICD.Utils.BuilderHierarchy`
+- `Terminology_ICD.Code`
+- `Terminology_ICD.Family`
+- `Terminology_ICD.Chapter`
+- `Terminology_ICD.HierarchyEdge`
+
+Purpose:
+
+- fast code lookup and description search
+- direct hierarchy navigation and subsumption checks
+- family-backed ValueSet expansion through the FHIR layer
+
 ## 4. How One Integrated View Is Created
 
-The integrated view is not created by forcing SNOMED CT and LOINC into one physical schema.
+The integrated view is not created by forcing SNOMED CT, LOINC and ICD into one physical schema.
 
 It is created by layering:
 
@@ -137,6 +167,7 @@ Examples:
 
 - `/terminology/snomed`
 - `/terminology/loinc`
+- `/terminology/icd`
 
 These paths expose terminology-specific operations directly.
 They are useful for development, debugging and expressing terminology-specific behaviors that do not naturally collapse into one neutral contract.
@@ -220,6 +251,7 @@ Adapters exist because shared operations do not imply identical terminology sema
 Examples:
 
 - SNOMED and LOINC both support lookup, but not through the same physical model
+- ICD also supports lookup, validate-code and subsumption, but with its own repository contract and hierarchy model
 - value set semantics differ
 - hierarchy semantics differ
 
@@ -255,7 +287,7 @@ The FHIR API is useful because:
 
 1. [README.md](../README.md)
 2. [docs/getting-started.md](getting-started.md)
-3. Try one native and one FHIR example for both SNOMED and LOINC
+3. Try one native and one FHIR example for SNOMED, LOINC or ICD
 4. [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ### Architecture Path
@@ -265,7 +297,8 @@ The FHIR API is useful because:
 3. `iris/src/Terminology/Core/TermService.cls`
 4. one adapter and one repository for SNOMED
 5. one adapter and one repository for LOINC
-6. FHIR operation classes under `iris/src/Terminology/Fhir/Operations/`
+6. one adapter and one repository for ICD
+7. FHIR operation classes under `iris/src/Terminology/Fhir/Operations/`
 
 ### Partner Conversation Path
 
