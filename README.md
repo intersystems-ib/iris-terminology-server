@@ -37,6 +37,8 @@ The goal is to show how to structure a terminology server on IRIS so that each t
 - a common terminology service layer with adapters and repositories underneath
 - search and query optimization patterns on IRIS, including iFind-backed search where appropriate
 
+![Terminology Explorer UI demo](docs/images/terminology-explorer-ui-demo.small.gif)
+
 ## Current Scope
 
 Today the repository provides:
