@@ -37,19 +37,19 @@ const SYSTEM_OPTIONS = [
   },
   {
     label: "ICD-10-ES",
-    value: "http://hl7.org/fhir/sid/icd-10-es"
+    value: "http://id.who.int/icd/release/10"
   }
 ];
 
 const defaultState: VectorFormState = {
   query: "neumonia adquirida en la comunidad",
-  searchSystemUris: ["http://snomed.info/sct", "http://hl7.org/fhir/sid/icd-10-es"],
+  searchSystemUris: ["http://snomed.info/sct", "http://id.who.int/icd/release/10"],
   searchReleaseIds: "",
   searchLang: "es",
   sourceSystemUri: "http://snomed.info/sct",
   sourceReleaseId: "SNOMED-ES-20250131",
   sourceCode: "233604007",
-  targetSystemUris: ["http://hl7.org/fhir/sid/icd-10-es"],
+  targetSystemUris: ["http://id.who.int/icd/release/10"],
   targetReleaseIds: "",
   crosswalkQuery: "",
   crosswalkLang: "es",

@@ -9,8 +9,6 @@ Property Version As %Integer;
 
 Property CodeType As %String;
 
-Property Lang As %String;
-
 Storage Default
 {
 <Data name="ICDLoadRequestDefaultData">
@@ -26,9 +24,6 @@ Storage Default
 </Value>
 <Value name="4">
 <Value>CodeType</Value>
-</Value>
-<Value name="5">
-<Value>Lang</Value>
 </Value>
 </Data>
 <DefaultData>ICDLoadRequestDefaultData</DefaultData>

@@ -558,14 +558,15 @@ if not rel_file:
     raise Exception("No se encontró sct2_Relationship_" + pSuffixFile + "Snapshot_*.txt")
 
 if bool(pClearRelease):
-    execute_non_query("DELETE FROM Terminology_Snomed.IsaClosure WHERE ReleaseId = ?", pReleaseId, context="delete_isaclosure")
-    execute_non_query("DELETE FROM Terminology_Snomed.PreferredTerm WHERE ReleaseId = ?", pReleaseId, context="delete_preferredterm")
-    execute_non_query("DELETE FROM Terminology_Snomed.LanguageRefSetConfig WHERE ReleaseId = ?", pReleaseId, context="delete_languagerefsetconfig")
-    execute_non_query("DELETE FROM Terminology_Snomed.EditionModule WHERE ReleaseId = ?", pReleaseId, context="delete_editionmodule")
-    execute_non_query("DELETE FROM Terminology_Snomed.RefsetMember WHERE ReleaseId = ?", pReleaseId, context="delete_refsetmember")
-    execute_non_query("DELETE FROM Terminology_Snomed.Relationship WHERE ReleaseId = ?", pReleaseId, context="delete_relationship")
-    execute_non_query("DELETE FROM Terminology_Snomed.Description WHERE ReleaseId = ?", pReleaseId, context="delete_description")
-    execute_non_query("DELETE FROM Terminology_Snomed.Concept WHERE ReleaseId = ?", pReleaseId, context="delete_concept")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.IsaClosure WHERE ReleaseId = ?", pReleaseId, context="delete_isaclosure")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.PreferredTerm WHERE ReleaseId = ?", pReleaseId, context="delete_preferredterm")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.LanguageRefSetConfig WHERE ReleaseId = ?", pReleaseId, context="delete_languagerefsetconfig")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.EditionModule WHERE ReleaseId = ?", pReleaseId, context="delete_editionmodule")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.RefsetMember WHERE ReleaseId = ?", pReleaseId, context="delete_refsetmember")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.Relationship WHERE ReleaseId = ?", pReleaseId, context="delete_relationship")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.Description WHERE ReleaseId = ?", pReleaseId, context="delete_description")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Snomed.Concept WHERE ReleaseId = ?", pReleaseId, context="delete_concept")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Vector.TermEmbedding WHERE ReleaseId = ?", pReleaseId, context="delete_code")
 
 concept_insert_sql = """
 INSERT INTO Terminology_Snomed.Concept

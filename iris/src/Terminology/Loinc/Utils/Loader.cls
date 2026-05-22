@@ -206,12 +206,13 @@ if not files["loinc"]:
     raise Exception("LoincTable/Loinc.csv not found")
 
 if bool(pClearRelease):
-    execute_non_query("DELETE FROM Terminology_Loinc.Display WHERE ReleaseId = ?", pReleaseId, context="delete_display")
-    execute_non_query("DELETE FROM Terminology_Loinc.GroupMember WHERE ReleaseId = ?", pReleaseId, context="delete_groupmember")
-    execute_non_query("DELETE FROM Terminology_Loinc.LoincGroup WHERE ReleaseId = ?", pReleaseId, context="delete_group")
-    execute_non_query("DELETE FROM Terminology_Loinc.CodePartLink WHERE ReleaseId = ?", pReleaseId, context="delete_partlink")
-    execute_non_query("DELETE FROM Terminology_Loinc.Part WHERE ReleaseId = ?", pReleaseId, context="delete_part")
-    execute_non_query("DELETE FROM Terminology_Loinc.Code WHERE ReleaseId = ?", pReleaseId, context="delete_code")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Loinc.Display WHERE ReleaseId = ?", pReleaseId, context="delete_display")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Loinc.GroupMember WHERE ReleaseId = ?", pReleaseId, context="delete_groupmember")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Loinc.LoincGroup WHERE ReleaseId = ?", pReleaseId, context="delete_group")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Loinc.CodePartLink WHERE ReleaseId = ?", pReleaseId, context="delete_partlink")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Loinc.Part WHERE ReleaseId = ?", pReleaseId, context="delete_part")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Loinc.Code WHERE ReleaseId = ?", pReleaseId, context="delete_code")
+    execute_non_query("DELETE %NOJOURN %NOLOCK FROM Terminology_Vector.TermEmbedding WHERE ReleaseId = ?", pReleaseId, context="delete_code")
 
 code_columns = [
     "ReleaseId",

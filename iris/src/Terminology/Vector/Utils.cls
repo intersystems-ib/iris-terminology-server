@@ -132,7 +132,7 @@ ClassMethod RebuildByReleasePy(pReleaseId As %String, pType As %String, pLang As
                 row["SystemUri"],
                 row["ReleaseId"],
                 row["Code"],
-                row["Lang"],
+                pLang,
                 row["Text"],
                 row["Model"],
                 row["Embedding"]

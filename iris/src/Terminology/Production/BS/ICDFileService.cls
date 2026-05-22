@@ -3,7 +3,7 @@ Class Terminology.Production.BS.ICDFileService Extends Ens.BusinessService
 
 Parameter ADAPTER = "EnsLib.File.InboundAdapter";
 
-Parameter SETTINGS = "TargetConfigName,ReleaseId,Version,CodeType,Lang";
+Parameter SETTINGS = "TargetConfigName,ReleaseId,Version,CodeType";
 
 Property TargetConfigName As %String(MAXLEN = 200) [ InitialExpression = "ICDLoad" ];
 
@@ -12,8 +12,6 @@ Property ReleaseId As %String;
 Property Version As %Integer [ InitialExpression = 10 ];
 
 Property CodeType As %String(MAXLEN = 32) [ InitialExpression = "DIAGNOSIS" ];
-
-Property Lang As %String(MAXLEN = 10) [ InitialExpression = "es" ];
 
 Method OnProcessInput(pInput As %Stream.Object, Output pOutput As Ens.Response) As %Status
 {
@@ -32,7 +30,6 @@ Method OnProcessInput(pInput As %Stream.Object, Output pOutput As Ens.Response) 
         Set req.ReleaseId = ..ReleaseId
         Set req.Version = ..Version
         Set req.CodeType = ..CodeType
-        Set req.Lang = ..Lang
 
         $$$LOGINFO("ICDFileService processing file: "_fileName_" | ReleaseId="_req.ReleaseId_" | Version="_req.Version_" | CodeType="_req.CodeType)
 

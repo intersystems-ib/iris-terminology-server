@@ -67,6 +67,7 @@ XData ProductionDefinition
     <Setting Target="Host" Name="ReleaseId">ICD-10-ES 2026</Setting>
     <Setting Target="Host" Name="Version">10</Setting>
     <Setting Target="Host" Name="GenerateVectors">1</Setting>
+    <Setting Target="Host" Name="ClearBeforeLoad">1</Setting>
   </Item>
   <Item Name="ICDRepositoryOperation" Category="" ClassName="Terminology.Production.BO.ICDRepositoryOperation" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
   </Item>
