@@ -281,4 +281,5 @@ Planned extensions include:
 
 ## Warning about IRIS for Health license
 
-The current project is based on `containers.intersystems.com/intersystems/irishealth:2026.1` distribution, this version requires a valid IRIS key with vector capabilities. If you want to test the functionalities of this project you can modify the [iris/Dockerfile](iris/Dockerfile) file and replace the current distribution with `containers.intersystems.com/intersystems/irishealth-community:2026.1`
+Due to the database size limitations in the Community license the current project is based on `containers.intersystems.com/intersystems/irishealth:2026.1` distribution, this version requires a valid IRIS key. If you want to use vector search functionalities your key must have vector capabilities. 
+If you don't have any licence you can use IRIS for Health Community, you just have to open [iris/Dockerfile](iris/Dockerfile) file and replace the current distribution with `containers.intersystems.com/intersystems/irishealth-community:2026.1`.
