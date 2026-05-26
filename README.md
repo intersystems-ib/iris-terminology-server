@@ -278,3 +278,7 @@ Planned extensions include:
 - FHIR integration ($translate, $lookup)
 - configurable similarity thresholds
 - support for multiple embedding models per use case
+
+## Warning about IRIS for Health license
+
+The current project is based on `containers.intersystems.com/intersystems/irishealth:2026.1` distribution, this version requires a valid IRIS key with vector capabilities. If you want to test the functionalities of this project you can modify the [iris/Dockerfile](iris/Dockerfile) file and replace the current distribution with `containers.intersystems.com/intersystems/irishealth-community:2026.1`
